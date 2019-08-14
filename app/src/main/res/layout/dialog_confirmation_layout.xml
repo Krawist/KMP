@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingTop="@dimen/fab_margin"
+    android:paddingLeft="@dimen/fab_margin"
+    android:background="@android:color/white">
+
+    <TextView
+        android:id="@+id/textview_confirmation_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@android:color/black"
+        android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+        android:text="Voulez vous vraiment supprimer ces musiques?"
+        android:paddingRight="@dimen/fab_margin"/>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/textview_confirmation_text">
+
+        <Button
+            android:id="@+id/button_confirmation_cancel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/annuler"
+            android:layout_toLeftOf="@id/button_confirmation_validate"
+            android:backgroundTint="@android:color/transparent"/>
+
+        <Button
+            android:id="@+id/button_confirmation_validate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/supprimer"
+            android:layout_alignParentRight="true"
+            android:backgroundTint="@android:color/transparent"/>
+
+    </RelativeLayout>
+
+</RelativeLayout>

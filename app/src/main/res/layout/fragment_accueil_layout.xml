@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:id="@+id/layout_fragment_acceuil_playlist_presentation"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textAppearance="@style/TextAppearance.AppCompat.Title"
+            android:text="@string/playlist"
+            android:padding="@dimen/fab_margin"
+            android:textStyle="bold"/>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerview_fragment_acceuil_list_playlist"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            tools:itemCount="1"
+            tools:listitem="@layout/playlist_item"
+            android:padding="@dimen/size_8dp"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/layout_fragment_acceuil_favoris_presentation"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:background="@android:color/white">
+
+            <TextView
+                android:id="@+id/text1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="@style/TextAppearance.AppCompat.Title"
+                android:text="@string/favoris"
+                android:padding="@dimen/fab_margin"
+                android:textStyle="bold"/>
+
+            <ImageButton
+                android:id="@+id/imagebutton_fragment_accueil_shuffle_favoris_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_shuffle_black_24dp"
+                android:layout_toRightOf="@id/text1"
+                android:layout_centerVertical="true"
+                android:backgroundTint="@android:color/transparent"
+                android:alpha=".6"/>
+
+            <Button
+                android:id="@+id/button_fragment_acceuil_play_all_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/jouer_tout"
+                android:padding="@dimen/fab_margin"
+                android:layout_alignParentRight="true"
+                android:background="@android:color/transparent"
+                android:layout_centerVertical="true"
+                android:textStyle="bold"
+                android:foreground="?android:attr/selectableItemBackground"/>
+
+        </RelativeLayout>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerview_fragment_acceuil_list_favoris"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            tools:listitem="@layout/simple_item_with_image_black"/>
+
+    </LinearLayout>
+
+</LinearLayout>
