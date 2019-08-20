@@ -27,10 +27,6 @@
             <item android:id="@+id/action_details"
                 android:title="Details"/>
 
-            <item android:id="@+id/action_play_after_current"
-                android:title="@string/lire_juste_apres"
-                android:visible="false"
-                android:enabled="false"/>
         </menu>
 
     </item>

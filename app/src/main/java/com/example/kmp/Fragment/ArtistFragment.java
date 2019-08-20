@@ -36,7 +36,7 @@ public class ArtistFragment extends Fragment {
         View view = inflater.inflate(R.layout.simple_list,container,false);
 
         recyclerView = view.findViewById(R.id.recyclerview_simple_list_items);
-        ((MainActivity)getContext()).findViewById(R.id.floating_button_simple_list_shuffle_play).setVisibility(View.GONE);
+        view.findViewById(R.id.floating_button_simple_list_shuffle_play).setVisibility(View.GONE);
 
         configureRecyclerView();
 
@@ -53,6 +53,7 @@ public class ArtistFragment extends Fragment {
         model.getAllArtistes().observe(this, new Observer<Cursor>() {
             @Override
             public void onChanged(Cursor cursor) {
+                ArtistFragment.this.cursor = cursor;
                 configureAdapter();
             }
         });

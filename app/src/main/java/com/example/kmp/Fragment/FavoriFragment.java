@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -19,7 +20,9 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.example.kmp.Activity.MainActivity;
 import com.example.kmp.Helper.Helper;
+import com.example.kmp.Modeles.Favori;
 import com.example.kmp.Modeles.Musique;
 import com.example.kmp.Modeles.Playlist;
 import com.example.kmp.R;
@@ -62,6 +65,7 @@ public class FavoriFragment  extends Fragment {
         configureModel();
 
         playlistAdapter = new PlaylistAdapter(this.playlists);
+
         recyclerViewPlaylist.setAdapter(playlistAdapter);
 
         configureFavorisAdapter();
@@ -82,15 +86,19 @@ public class FavoriFragment  extends Fragment {
         addActionToViews();
     }
 
+    @Override
+    public boolean onContextItemSelected(MenuItem item) {
+        if(getUserVisibleHint()){
+            Helper.handleMusicContextItemSelected(getContext(),item,favoriteSong);
+        }
+        return super.onContextItemSelected(item);
+    }
+
     private void addActionToViews() {
         shuffleFavorisButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(getContext(), PlayerService.class);
-                model.getCurrentPLayingMusic().setValue(favoriteSong.get(0));
-                model.getListOfSongToPlay().setValue(favoriteSong);
-                intent.setAction(PlayerService.ACTION_PLAY_PLAYLIST);
-                getActivity().startService(intent);
+                ((MainActivity)getContext()).startPlaylist(favoriteSong,null,0,true);
             }
         });
 
@@ -221,26 +229,11 @@ public class FavoriFragment  extends Fragment {
                 itemView.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        model.setPlayingList(favoriteSong,getContext());
-                        model.getPositionOfSongToPLay().setValue(position);
-                        model.getCurrentPLayingMusic().setValue(musique);
-                        Intent intent = new Intent(getContext(), PlayerService.class);
-                        intent.setAction(ACTION_PLAY_PLAYLIST);
-                        getActivity().startService(intent);
+                        ((MainActivity)getContext()).startPlaylist(favoriteSong,musique, position, false);
                     }
                 });
 
-                itemView.setOnCreateContextMenuListener(new View.OnCreateContextMenuListener() {
-                    @Override
-                    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
-                        menu.setHeaderTitle(musique.getTitreMusique());
-                        menu.add(position,R.id.action_play_after_current,0,getString(R.string.jouer_apres));
-                        menu.add(position,R.id.action_add_to_playlist,1,getString(R.string.ajouter_a_la_playlist));
-                        menu.add(position,R.id.action_partager,2,getString(R.string.partager));
-                        menu.add(position,R.id.action_supprimer,3,getString(R.string.supprimer));
-                        menu.add(position,R.id.action_details,4,getString(R.string.details));
-                    }
-                });
+                Helper.builMusicItemContextMenu(getContext(),itemView,musique,position);
             }
         }
     }
@@ -282,7 +275,7 @@ public class FavoriFragment  extends Fragment {
             if(playlists!=null)
                 return playlists.size()+1;
             else
-                return 1;
+                return 0;
         }
 
         private class PlaylistViewHolder extends RecyclerView.ViewHolder{
@@ -298,13 +291,20 @@ public class FavoriFragment  extends Fragment {
                 playlistPlayAllButton = view.findViewById(R.id.imagebutton_playlist_item_play_all);
             }
 
-            public void bindData(Playlist playlist, int position){
+            public void bindData(final Playlist playlist, int position){
                 playlistName.setText(playlist.getNomPlaylist());
                 Glide.with(getContext())
                         .load(playlist.getPochette())
                         .error(R.color.colorPrimaryDark)
                         .centerCrop()
                         .into(playlistIcon);
+
+                playlistPlayAllButton.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+
+                    }
+                });
             }
         }
     }

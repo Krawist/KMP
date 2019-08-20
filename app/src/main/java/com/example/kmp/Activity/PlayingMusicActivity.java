@@ -45,6 +45,7 @@ import android.widget.TextView;
 import com.example.kmp.Fragment.PlayingMusicPagerFragment;
 import com.example.kmp.Helper.Helper;
 import com.example.kmp.Modeles.Musique;
+import com.example.kmp.Modeles.Favori;
 import com.example.kmp.R;
 import com.example.kmp.Service.PlayerService;
 import com.example.kmp.ViewModel.KmpViewModel;
@@ -107,8 +108,10 @@ public class PlayingMusicActivity extends AppCompatActivity {
     @Override
     public void onStart() {
         super.onStart();
-        Intent intent = new Intent(this, PlayerService.class);
-        bindService(intent,connection, Context.BIND_AUTO_CREATE);
+        if(!bound){
+            Intent intent = new Intent(this, PlayerService.class);
+            bindService(intent,connection, Context.BIND_AUTO_CREATE);
+        }
     }
 
     @Override
@@ -208,7 +211,7 @@ public class PlayingMusicActivity extends AppCompatActivity {
 
     private void addSongToPlayList(){
         Musique musique = model.getCurrentPLayingMusic().getValue();
-        //Helper.addSongToPlaylist(musique,this,model.getPlaylists().getValue());
+        //Helper.addSongToPlaylist(musique,this,model.loadPlaylists().getValue());
     }
 
     private void deleteMusic() {
@@ -226,12 +229,21 @@ public class PlayingMusicActivity extends AppCompatActivity {
         });
         Button validateButton = dialog.findViewById(R.id.button_confirmation_validate);
         validateButton.setText(getString(R.string.supprimer));
+        final Musique musique = model.getCurrentPLayingMusic().getValue();
         validateButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if(bound){
-                    service.playNextSong();
-                    Helper.deleteMusics(PlayingMusicActivity.this,model.getCurrentPLayingMusic().getValue());
+                    if(service.getPlayingQueueSize()==1){
+                        service.stop();
+                        Helper.deleteMusics(PlayingMusicActivity.this, musique);
+                        finish();
+                    }else{
+                        service.getPlayingQueue().remove(service.getPosition());
+                        service.getOriginalPlayList().remove(service.getPosition());
+                        service.playNextSong();
+                        Helper.deleteMusics(PlayingMusicActivity.this, musique);
+                    }
                 }
                 dialog.dismiss();
             }
@@ -258,14 +270,8 @@ public class PlayingMusicActivity extends AppCompatActivity {
         Musique musique = model.getCurrentPLayingMusic().getValue();
         artisteMusique.setText(musique.getNomArtiste());
         titreMusique.setText(musique.getTitreMusique());
-/*        Glide.with(getContext())
-                .load(musique.getPochette())
-                .asBitmap()
-                .diskCacheStrategy(DiskCacheStrategy.ALL)
-                .transform(new Helper.BlurTransformation(getContext()))
-                .into(view);*/
 
-        if(model.getFavoriteSongs().getValue()!=null && model.getFavoriteSongs().getValue().contains(musique)){
+        if(musique.isLiked()){
             favorite.setImageResource(R.drawable.ic_favorite_black_24dp);
         }else{
             favorite.setImageResource(R.drawable.ic_favorite_border_black_24dp);
@@ -330,16 +336,6 @@ public class PlayingMusicActivity extends AppCompatActivity {
             }
         });
 
-        model.getPlayingSongPosition().observe(this, new Observer<Integer>() {
-            @Override
-            public void onChanged(Integer integer) {
-                seekBar.setProgress(integer);
-                if(bound)
-                    seekBar.setMax(service.getDuration());
-                tempsEcoule.setText(Helper.formatDurationToString(integer));
-            }
-        });
-
         model.getLoopingMode().observe(this, new Observer<Integer>() {
             @Override
             public void onChanged(Integer integer) {
@@ -396,6 +392,8 @@ public class PlayingMusicActivity extends AppCompatActivity {
         model.getPlayingSongPosition().observe(this, new Observer<Integer>() {
             @Override
             public void onChanged(Integer progress) {
+                if(bound)
+                    seekBar.setMax(service.getDuration());
                 seekBar.setProgress(progress);
                 tempsEcoule.setText(Helper.formatDurationToString(progress));
             }
@@ -488,21 +486,16 @@ public class PlayingMusicActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Musique musique = model.getCurrentPLayingMusic().getValue();
-
-                if(model.getFavoriteSongs().getValue()!=null){
-                    if(!model.getFavoriteSongs().getValue().contains(musique)){
-                        musique.setLiked(true);
-                        model.addToFromFavorite(musique);
-                        favorite.setImageResource(R.drawable.ic_favorite_black_24dp);
-                    }else{
-                        model.removeSongFromFavorite(musique);
-                        favorite.setImageResource(R.drawable.ic_favorite_border_black_24dp);
-                    }
-                }else{
-                    musique.setLiked(true);
-                    model.addToFromFavorite(musique);
+                musique.setLiked(!musique.isLiked());
+                if(musique.isLiked()) {
                     favorite.setImageResource(R.drawable.ic_favorite_black_24dp);
+                    model.addToFavorite(new Favori(musique.getIdMusique()));
                 }
+                else {
+                    favorite.setImageResource(R.drawable.ic_favorite_border_black_24dp);
+                    model.removeFromFavorite(new Favori(musique.getIdMusique()));
+                }
+
             }
         });
 
@@ -528,7 +521,7 @@ public class PlayingMusicActivity extends AppCompatActivity {
     }
 
     private void configureViewPager() {
-        if(model.getListOfSongToPlay().getValue()!=null){
+        if(model.getPlayingQueue().getValue()!=null){
             viewPager.setAdapter(new SongPochetteAdapter(getSupportFragmentManager()));
             viewPager.setCurrentItem(model.getPositionOfSongToPLay().getValue(), false);
 
@@ -541,10 +534,13 @@ public class PlayingMusicActivity extends AppCompatActivity {
                 @Override
                 public void onPageSelected(int position) {
                     model.getPositionOfSongToPLay().setValue(position);
-                    model.getCurrentPLayingMusic().setValue(model.getListOfSongToPlay().getValue().get(position));
-                    Intent intent = new Intent(PlayingMusicActivity.this, PlayerService.class);
+                    model.getCurrentPLayingMusic().setValue(model.getPlayingQueue().getValue().get(position));
+                    if(bound){
+                        service.playSongAt(position);
+                    }
+/*                    Intent intent = new Intent(PlayingMusicActivity.this, PlayerService.class);
                     intent.setAction(ACTION_PLAY_PLAYLIST);
-                    startService(intent);
+                    startService(intent);*/
                 }
 
                 @Override
@@ -563,7 +559,7 @@ public class PlayingMusicActivity extends AppCompatActivity {
 
         @Override
         public Fragment getItem(int position) {
-            return PlayingMusicPagerFragment.getInstance(model.getListOfSongToPlay().getValue().get(position));
+            return PlayingMusicPagerFragment.getInstance(model.getPlayingQueue().getValue().get(position));
         }
 
         @Override
@@ -667,5 +663,4 @@ public class PlayingMusicActivity extends AppCompatActivity {
             });
         }
     }
-
 }

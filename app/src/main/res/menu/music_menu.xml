@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item android:id="@+id/action_music_play_after"
+        android:title="@string/jouer_apres"/>
+
+    <item android:id="@+id/action_music_add_to_playslist"
+        android:title="@string/ajouter_a_la_playlist"/>
+
+    <item android:id="@+id/action_music_ajouter_aux_favoris"
+        android:title="@string/ajouter_aux_favori"/>
+
+    <item android:id="@+id/action_music_retirer_des_favoris"
+        android:title="@string/retirer_des_favoris"/>
+
+    <item android:id="@+id/action_music_partager"
+        android:title="@string/partager"/>
+
+    <item android:id="@+id/action_music_supprimer"
+        android:title="@string/supprimer"/>
+
+    <item android:id="@+id/action_music_details"
+        android:title="@string/details"/>
+
+</menu>

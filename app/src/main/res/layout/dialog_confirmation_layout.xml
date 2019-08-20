@@ -13,7 +13,8 @@
         android:textColor="@android:color/black"
         android:textAppearance="@style/TextAppearance.AppCompat.Medium"
         android:text="Voulez vous vraiment supprimer ces musiques?"
-        android:paddingRight="@dimen/fab_margin"/>
+        android:paddingRight="@dimen/fab_margin"
+        />
 
     <RelativeLayout
         android:layout_width="match_parent"
@@ -26,7 +27,8 @@
             android:layout_height="wrap_content"
             android:text="@string/annuler"
             android:layout_toLeftOf="@id/button_confirmation_validate"
-            android:backgroundTint="@android:color/transparent"/>
+            android:background="@android:color/transparent"
+            android:textStyle="bold"/>
 
         <Button
             android:id="@+id/button_confirmation_validate"
@@ -34,7 +36,8 @@
             android:layout_height="wrap_content"
             android:text="@string/supprimer"
             android:layout_alignParentRight="true"
-            android:backgroundTint="@android:color/transparent"/>
+            android:background="@android:color/transparent"
+            android:textStyle="bold"/>
 
     </RelativeLayout>
 

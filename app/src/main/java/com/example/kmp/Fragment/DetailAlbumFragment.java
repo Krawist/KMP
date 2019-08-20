@@ -7,6 +7,7 @@ import com.bumptech.glide.Glide;
 import com.example.kmp.Activity.MainActivity;
 import com.example.kmp.Helper.Helper;
 import com.example.kmp.Modeles.Album;
+import com.example.kmp.Modeles.Favori;
 import com.example.kmp.Modeles.Musique;
 import com.example.kmp.R;
 import com.example.kmp.Service.PlayerService;
@@ -32,7 +33,6 @@ import android.widget.TextView;
 
 import java.util.List;
 
-import static com.example.kmp.Service.PlayerService.ACTION_PLAY;
 import static com.example.kmp.Service.PlayerService.ACTION_PLAY_PLAYLIST;
 
 public class DetailAlbumFragment extends Fragment {
@@ -79,7 +79,7 @@ public class DetailAlbumFragment extends Fragment {
         }
     }*/
 
-    private DetailAlbumFragment(){
+    public DetailAlbumFragment(){
 
     }
 
@@ -93,28 +93,8 @@ public class DetailAlbumFragment extends Fragment {
 
     @Override
     public boolean onContextItemSelected(MenuItem item) {
-        int position = item.getGroupId();
-        switch (item.getItemId()){
-
-            case R.id.action_add_to_playlist:
-                ((MainActivity)getContext()).addToPlaylist(musiqueList.get(position));
-                break;
-
-            case R.id.action_play_after_current:
-                ((MainActivity)getContext()).playAfterCurrent(musiqueList.get(position));
-                break;
-
-            case R.id.action_partager:
-                Helper.shareMusics(getContext(),musiqueList.get(position));
-                return true;
-
-            case R.id.action_supprimer:
-                Helper.deleteMusics(getContext(),musiqueList.get(position));
-                return true;
-
-            case R.id.action_details:
-                Helper.showDetailsOf(getContext(),musiqueList.get(position));
-                return true;
+        if(getUserVisibleHint()){
+            Helper.handleMusicContextItemSelected(getContext(),item,musiqueList);
         }
         return super.onContextItemSelected(item);
     }
@@ -157,7 +137,6 @@ public class DetailAlbumFragment extends Fragment {
             recyclerView.setAdapter(adapter);
         }
     }
-
 
     private void addDataToViews() {
         nomArtiste.setText(album.getNomArtiste());
@@ -288,17 +267,7 @@ public class DetailAlbumFragment extends Fragment {
                     }
                 });
 
-                itemView.setOnCreateContextMenuListener(new View.OnCreateContextMenuListener() {
-                    @Override
-                    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
-                        menu.setHeaderTitle(musique.getTitreMusique());
-                        menu.add(position,R.id.action_play_after_current,0,getString(R.string.jouer_apres));
-                        menu.add(position,R.id.action_add_to_playlist,1,getString(R.string.ajouter_a_la_playlist));
-                        menu.add(position,R.id.action_partager,2,getString(R.string.partager));
-                        menu.add(position,R.id.action_supprimer,3,getString(R.string.supprimer));
-                        menu.add(position,R.id.action_details,4,getString(R.string.details));
-                    }
-                });
+                Helper.builMusicItemContextMenu(getContext(),itemView,musique,position);
             }
         }
     }

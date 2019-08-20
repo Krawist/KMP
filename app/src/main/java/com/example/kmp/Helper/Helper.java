@@ -1,16 +1,21 @@
 package com.example.kmp.Helper;
 
 import android.Manifest;
+import android.app.Activity;
 import android.app.Dialog;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
+import android.drm.DrmStore;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.provider.MediaStore;
 import android.text.TextUtils;
+import android.util.Log;
+import android.view.ContextMenu;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -32,11 +37,15 @@ import com.bumptech.glide.request.target.BitmapImageViewTarget;
 import com.example.kmp.Activity.MainActivity;
 import com.example.kmp.Modeles.Album;
 import com.example.kmp.Modeles.Artiste;
+import com.example.kmp.Modeles.BaseMusique;
+import com.example.kmp.Modeles.Favori;
 import com.example.kmp.Modeles.Musique;
 import com.example.kmp.Modeles.Playlist;
 import com.example.kmp.R;
+import com.example.kmp.ViewModel.KmpViewModel;
 
 import java.io.File;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -82,28 +91,6 @@ public class Helper {
         return context.getContentResolver().query(MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI,projection,null,null,MediaStore.Audio.Albums.DEFAULT_SORT_ORDER);
     }
 
-    public static Cursor getArtistSongs(Context context, int artistId){
-
-        String[] projection = {MediaStore.Audio.Media._ID,
-                MediaStore.Audio.Media.ALBUM,
-                MediaStore.Audio.Media.TITLE,
-                MediaStore.Audio.Media.ALBUM_ID,
-                MediaStore.Audio.Media.ARTIST,
-                MediaStore.Audio.Media.ARTIST_ID,
-                MediaStore.Audio.Media.DURATION,
-                MediaStore.Audio.Media.DATA,
-                MediaStore.Audio.Media.TRACK,
-                MediaStore.Audio.Media.IS_MUSIC,
-                MediaStore.Audio.Media.SIZE,
-                MediaStore.Audio.Playlists.Members.BOOKMARK};
-
-        String selection = MediaStore.Audio.Media.IS_MUSIC + " = ? AND "+ MediaStore.Audio.Media.ARTIST_ID + " = ?";
-
-        String[] selectionArgs = {String.valueOf(1), String.valueOf(artistId)};
-
-        return context.getContentResolver().query(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,projection,selection,selectionArgs,MediaStore.Audio.Media.TITLE);
-    }
-
     public static Cursor getAllArtist(Context context){
 
         String[] projection = {MediaStore.Audio.Artists._ID,
@@ -112,22 +99,20 @@ public class Helper {
                 MediaStore.Audio.Artists.NUMBER_OF_TRACKS};
 
         return context.getContentResolver().query(MediaStore.Audio.Artists.EXTERNAL_CONTENT_URI, projection, null, null, MediaStore.Audio.Artists.ARTIST);
-
     }
 
-    public static List<Musique> matchCursorToMusics(Cursor cursor){
+    public static List<BaseMusique> matchBasicCursorToMusics(Cursor cursor){
 
-        ArrayList<Musique> list = new ArrayList<>();
+        ArrayList<BaseMusique> list = new ArrayList<>();
         cursor.moveToPosition(-1);
         while (cursor.moveToNext()){
-            Musique musique= new Musique();
+            BaseMusique musique= new BaseMusique();
             musique.setIdMusique(cursor.getInt(cursor.getColumnIndex(MediaStore.Audio.Media._ID)));
             musique.setIdAlbum(cursor.getInt(cursor.getColumnIndex(MediaStore.Audio.Media.ALBUM_ID)));
             musique.setIdArtiste(cursor.getInt(cursor.getColumnIndex(MediaStore.Audio.Media.ARTIST_ID)));
             musique.setNomArtiste(cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ARTIST)));
             musique.setTitreAlbum(cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ALBUM)));
             musique.setDuration(cursor.getInt(cursor.getColumnIndex(MediaStore.Audio.Media.DURATION)));
-            musique.setLiked(false);
             musique.setParoleMusique("");
             musique.setPath(cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.DATA)));
             musique.setPochette("");
@@ -179,10 +164,10 @@ public class Helper {
         return list;
     }
 
-    public static Musique matchCursorToSpecificMusic(Cursor cursor, int position){
+    public static BaseMusique matchCursorToSpecificMusic(Cursor cursor, int position){
 
         if(cursor!=null){
-            Musique musique= new Musique();
+            BaseMusique musique= new BaseMusique();
             if(cursor.moveToPosition(position)){
                 musique.setIdMusique(cursor.getInt(cursor.getColumnIndex(MediaStore.Audio.Media._ID)));
                 musique.setIdAlbum(cursor.getInt(cursor.getColumnIndex(MediaStore.Audio.Media.ALBUM_ID)));
@@ -190,7 +175,6 @@ public class Helper {
                 musique.setNomArtiste(cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ARTIST)));
                 musique.setTitreAlbum(cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ALBUM)));
                 musique.setDuration(cursor.getInt(cursor.getColumnIndex(MediaStore.Audio.Media.DURATION)));
-                musique.setLiked(false);
                 musique.setParoleMusique("");
                 musique.setPath(cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.DATA)));
                 musique.setPochette("");
@@ -239,7 +223,7 @@ public class Helper {
 
     public static List<Playlist> matchCursorToPlaylist(Cursor cursor){
         List<Playlist> playlists = new ArrayList<>();
-        if(cursor.moveToPosition(-1)){
+        if(cursor!=null){
             while (cursor.moveToNext()){
                 Playlist playlist = new Playlist();
                 playlist.setIdPlaylist(cursor.getInt(cursor.getColumnIndex(MediaStore.Audio.Playlists._ID)));
@@ -301,8 +285,8 @@ public class Helper {
         return context.getContentResolver().query(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,projection,selection,selectionArgs,MediaStore.Audio.Media.TRACK);
     }
 
-    public static List<Musique> updateMusic(List<Musique> musiques, Context context){
-        for(Musique musique: musiques){
+    public static List<BaseMusique> updateMusic(List<BaseMusique> musiques, Context context){
+        for(BaseMusique musique: musiques){
             String[] projection = {MediaStore.Audio.Albums.ALBUM_ART, MediaStore.Audio.Albums._ID};
             String[] selectionArgs = {musique.getIdAlbum()+""};
             //Log.e("Krawist"," Album Id "+musique.getAlbumId());
@@ -310,7 +294,6 @@ public class Helper {
             Cursor anotherCursor = context.getContentResolver().query(MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI,projection,selection,selectionArgs,null);
             if(anotherCursor!=null && anotherCursor.moveToFirst()){
                 musique.setPochette(anotherCursor.getString(anotherCursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM_ART)));
-                musique.setLiked(true);
             }
         }
 
@@ -351,24 +334,23 @@ public class Helper {
     }
 
     private static String getMusicSize(Musique musique) {
+        DecimalFormat format = new DecimalFormat("#,##");
         int sizeInOctet = musique.getSize();
         int BASE = 1024;
         if(sizeInOctet>BASE){
             if(sizeInOctet>Math.pow(BASE, 2)){
                 if(sizeInOctet>Math.pow(BASE,3)){
                     if(sizeInOctet>Math.pow(BASE,4)){
-                        return sizeInOctet/Math.pow(BASE,4)+"TB";
+                        return format.format(sizeInOctet/Math.pow(BASE,4))+" TB";
                     }else
-                        return sizeInOctet/Math.pow(BASE,3)+"GB";
+                        return format.format(sizeInOctet/Math.pow(BASE,3))+" GB";
                 }else
-                    return sizeInOctet/(Math.pow(1024,2))+"MB";
+                    return format.format(sizeInOctet/(Math.pow(BASE,2)))+" MB";
             }else{
-                return sizeInOctet/BASE+"KB";
+                return format.format(sizeInOctet/BASE)+" KB";
             }
         }else
-            return sizeInOctet+"O";
-
-
+            return sizeInOctet+" O";
     }
 
     private static String getMusicTrack(Musique musique, Context context) {
@@ -398,31 +380,21 @@ public class Helper {
         String[] projection = {
                 MediaStore.Audio.Playlists._ID,
                 MediaStore.Audio.Playlists.NAME
-            };
+        };
 
         return context.getContentResolver().query(MediaStore.Audio.Playlists.EXTERNAL_CONTENT_URI,projection, null, null, MediaStore.Audio.Playlists.DEFAULT_SORT_ORDER);
     }
 
-    public static Cursor getPLaysListSongs(Context context, int plalistId){
+    public static Cursor getPLaysListSongs(Context context){
         String[] projection = {
                 MediaStore.Audio.Playlists.Members.AUDIO_ID,
-                MediaStore.Audio.Playlists.Members.ARTIST_ID,
-                MediaStore.Audio.Playlists.Members.ALBUM_ID,
-                MediaStore.Audio.Playlists.Members.ARTIST,
-                MediaStore.Audio.Playlists.Members.ALBUM,
-                MediaStore.Audio.Playlists.Members.DATA,
-                MediaStore.Audio.Playlists.Members.SIZE,
                 MediaStore.Audio.Playlists.Members.IS_MUSIC,
-                MediaStore.Audio.Playlists.Members.TRACK,
-                MediaStore.Audio.Playlists.Members.DURATION,
-                MediaStore.Audio.Playlists.Members.TITLE,
                 MediaStore.Audio.Playlists.Members.PLAYLIST_ID,
-                MediaStore.Audio.Playlists.Members.BOOKMARK
 
         };
 
-        String selection = MediaStore.Audio.Playlists.Members.PLAYLIST_ID + " = ? AND "+ MediaStore.Audio.Playlists.Members.IS_MUSIC + " = ?";
-        String[] selectionARgs = {String.valueOf(plalistId), "1"};
+        String selection = MediaStore.Audio.Playlists.Members.IS_MUSIC + " = ?";
+        String[] selectionARgs = {"1"};
 
         return context.getContentResolver().query(MediaStore.Audio.Playlists.EXTERNAL_CONTENT_URI, projection,selection,selectionARgs, MediaStore.Audio.Playlists.Members.DEFAULT_SORT_ORDER);
     }
@@ -438,8 +410,36 @@ public class Helper {
         context.startActivity(shareIntent);
     }
 
-    public static void deleteMusics(Context context, Musique... musiques){
+    public static void confirmSongsSuppresion(final Context context, final Musique... musiques){
 
+        final Dialog dialog = new Dialog(context);
+        dialog.setContentView(R.layout.dialog_confirmation_layout);
+        ((TextView)dialog.findViewById(R.id.textview_confirmation_text)).setText(R.string.supprimer_un_song);
+        Button cancelButton = dialog.findViewById(R.id.button_confirmation_cancel);
+        cancelButton.setText(R.string.annuler);
+        cancelButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+            }
+        });
+        Button validateButton = dialog.findViewById(R.id.button_confirmation_validate);
+        validateButton.setText(R.string.supprimer);
+        validateButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+                Helper.deleteMusics(context, musiques);
+            }
+        });
+
+        dialog.setCanceledOnTouchOutside(false);
+
+        dialog.show();
+    }
+
+    public static void deleteMusics(Context context, Musique... musiques) {
+        KmpViewModel model = KmpViewModel.getInstance(((Activity)context).getApplication(), context);
         Dialog dialog = new Dialog(context);
         dialog.setContentView(R.layout.dialog_waiting_process_with_progress_layout);
         ProgressBar progressBar = dialog.findViewById(R.id.progress_horizontal);
@@ -450,15 +450,18 @@ public class Helper {
         dialog.setCanceledOnTouchOutside(false);
         dialog.show();
         for(int i=0; i<musiques.length; i++){
+            progress.setText(i+"");
+            /* on efface le fichier de la machine */
             File file = new File(musiques[i].getPath());
             file.delete();
-            progress.setText(i+"");
-            ContentValues contentValues  = new ContentValues();
+            /* on efface le fichier du provider*/
             String where = MediaStore.Audio.Media._ID +" = ?";
             String[] args = {musiques[i].getIdMusique()+""};
             context.getContentResolver().delete(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,where,args);
+            /* on efface la musique du romm database*/
+            model.deleteMusique(musiques[i]);
         }
-
+        model.refreshData(context);
         dialog.dismiss();
     }
 
@@ -615,6 +618,67 @@ public class Helper {
         contentValues.put(MediaStore.Audio.Playlists.Members.AUDIO_ID, musique.getIdMusique());
 
         //context.getContentResolver().insert(MediaStore.Audio.Playlists.Members.)
+    }
+
+    public static void builMusicItemContextMenu(final Context context, View itemView, final Musique musique, final int position){
+        itemView.setOnCreateContextMenuListener(new View.OnCreateContextMenuListener() {
+            @Override
+            public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
+                menu.setHeaderTitle(musique.getTitreMusique());
+                int i=0;
+                menu.add(position,R.id.action_music_play_after,i,context.getString(R.string.jouer_apres));
+                i++;
+                menu.add(position,R.id.action_music_add_to_playslist,i,context.getString(R.string.ajouter_a_la_playlist));
+                i++;
+                if(musique.isLiked()){
+                    menu.add(position,R.id.action_music_retirer_des_favoris,i,context.getString(R.string.retirer_des_favoris));
+                }else{
+                    menu.add(position,R.id.action_music_ajouter_aux_favoris,i,context.getString(R.string.ajouter_aux_favori));
+                }
+                i++;
+                menu.add(position,R.id.action_music_partager,i,context.getString(R.string.partager));
+                i++;
+                menu.add(position,R.id.action_music_supprimer,i,context.getString(R.string.supprimer));
+                i++;
+                menu.add(position,R.id.action_music_details,i,context.getString(R.string.details));
+            }
+        });
+    }
+
+    public static boolean handleMusicContextItemSelected(Context context, MenuItem item, List<Musique> musiqueList) {
+        int position = item.getGroupId();
+        switch (item.getItemId()) {
+
+            case R.id.action_music_play_after:
+                ((MainActivity) context).playAfterCurrent(musiqueList.get(position));
+                return true;
+
+            case R.id.action_music_add_to_playslist:
+                ((MainActivity) context).addToPlaylist(musiqueList.get(position));
+                return true;
+
+            case R.id.action_music_partager:
+                Helper.shareMusics(context, musiqueList.get(position));
+                return true;
+
+            case R.id.action_music_supprimer:
+                Helper.confirmSongsSuppresion(context, musiqueList.get(position));
+                return true;
+
+            case R.id.action_music_details:
+                Helper.showDetailsOf(context, musiqueList.get(position));
+                return true;
+
+            case R.id.action_music_retirer_des_favoris:
+                KmpViewModel.getInstance(((Activity) context).getApplication(), context).removeFromFavorite(new Favori(musiqueList.get(position).getIdMusique()));
+                return true;
+
+            case R.id.action_music_ajouter_aux_favoris:
+                KmpViewModel.getInstance(((Activity) context).getApplication(), context).addToFavorite(new Favori(musiqueList.get(position).getIdMusique()));
+                return true;
+        }
+
+        return false;
     }
     
 }

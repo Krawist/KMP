@@ -60,6 +60,7 @@ public class PlayerService extends MediaBrowserServiceCompat implements AudioMan
     public static final String ACTION_SKIP = PACKAGE_NAME + ".skip";
     public static final String ACTION_REWIND = PACKAGE_NAME + ".rewind";
     public static final String ACTION_QUIT = PACKAGE_NAME + ".quitservice";
+    public static final String ACTION_LOAD = PACKAGE_NAME + ".load";
     public static final String ACTION_PENDING_QUIT = PACKAGE_NAME + ".pendingquitservice";
     public static final String INTENT_EXTRA_PLAYLIST = PACKAGE_NAME + "intentextra.playlist";
     public static final String INTENT_EXTRA_SHUFFLE_MODE = PACKAGE_NAME + ".intentextra.shufflemode";
@@ -99,6 +100,7 @@ public class PlayerService extends MediaBrowserServiceCompat implements AudioMan
     private int repeatMode;
     private Playback playback;
     private boolean pausedByTransientLossOfFocus;
+    public static int numberOfSongPlayedInShuffleMode = 0;
     private IntentFilter becomingNoisyReceiverIntentFilter = new IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY);
     KmpViewModel model;
     UpdateSeekBarPosition seekBarPositionRunnable = new UpdateSeekBarPosition();
@@ -234,10 +236,9 @@ public class PlayerService extends MediaBrowserServiceCompat implements AudioMan
                         playPreviousSong();
                         break;
 
-                    default:
+                    case ACTION_LOAD:
                         preparePlaying();
                         break;
-
                 }
             }
         }
@@ -256,6 +257,9 @@ public class PlayerService extends MediaBrowserServiceCompat implements AudioMan
     private void shuffleOriginalList() {
         List<Musique> list = new ArrayList<>(getOriginalPlayList());
         List<Musique> newPlayingQueue = new ArrayList<>();
+        newPlayingQueue.add(list.get(model.getPositionOfSongToPLay().getValue()));
+        list.remove(model.getPositionOfSongToPLay().getValue());
+        numberOfSongPlayedInShuffleMode = 0;
         Random rand = new Random();
         while (!list.isEmpty()){
             int n = rand.nextInt(list.size());
@@ -268,7 +272,7 @@ public class PlayerService extends MediaBrowserServiceCompat implements AudioMan
 
     private void preparePlaying() {
         loadMusic();
-        seetTo(model.getPlayingSongPosition().getValue());
+        //seetTo(model.getPlayingSongPosition().getValue());
     }
 
     private void initNotification() {
@@ -338,6 +342,7 @@ public class PlayerService extends MediaBrowserServiceCompat implements AudioMan
             public void onSeekTo(long pos) {
                 seetTo(pos);
             }
+
         });
 
         mediaSession.setFlags(MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS
@@ -449,7 +454,7 @@ public class PlayerService extends MediaBrowserServiceCompat implements AudioMan
                 .apply();
     }
 
-    private List<Musique> getOriginalPlayList(){
+    public List<Musique> getOriginalPlayList(){
         return model.getListOfSongToPlay().getValue();
     }
 
@@ -536,6 +541,10 @@ public class PlayerService extends MediaBrowserServiceCompat implements AudioMan
         return newPosition;
     }
 
+    public MediaSessionCompat getMediaSession(){
+        return mediaSession;
+    }
+
     public int getPreviousPosition(){
         int newPosition = (getPosition()-1)%getPlayingQueueSize();
         if(newPosition<0)
@@ -544,7 +553,7 @@ public class PlayerService extends MediaBrowserServiceCompat implements AudioMan
         return newPosition;
     }
 
-    private int getOriginalPlaylistSize(){
+    public int getOriginalPlaylistSize(){
         if(model.getListOfSongToPlay().getValue()!=null)
             return model.getListOfSongToPlay().getValue().size();
         else
@@ -640,28 +649,29 @@ public class PlayerService extends MediaBrowserServiceCompat implements AudioMan
     }
 
     public void addSong(int position, Musique song) {
-        List<Musique> playlist = getPlayingQueue();
-        playlist.add(position,song);
+        getPlayingQueue().add(position, song);
+        getOriginalPlayList().add(song);
+        model.getPositionOfSongToPLay().setValue(getPreviousPosition());
 
-        Toast.makeText(context,"Le song sera joué juste après celui en cours",Toast.LENGTH_LONG).show();
+        Toast.makeText(context,getString(R.string.le_song_sera_jouer_juste_apres),Toast.LENGTH_LONG).show();
     }
 
     public void addSong(Musique song) {
         getPlayingQueue().add(song);
         getOriginalPlayList().add(song);
-        Toast.makeText(context,"Le song sera joué juste aprèsla liste de lecture en cours",Toast.LENGTH_LONG).show();
+        Toast.makeText(context,getString(R.string.le_song_sera_joue_apres_la_liste_en_cours),Toast.LENGTH_LONG).show();
     }
 
     public void addSongs(int position, List<Musique> songs) {
         getPlayingQueue().addAll(position, songs);
         getOriginalPlayList().addAll(position, songs);
-        Toast.makeText(context,"cette liste sera joué juste après le song en cours",Toast.LENGTH_LONG).show();
+        Toast.makeText(context,getString(R.string.la_liste_sera_joue_apres_le_song_en_cours),Toast.LENGTH_LONG).show();
     }
 
     public void addSongs(List<Musique> songs) {
         getPlayingQueue().addAll(songs);
         getOriginalPlayList().addAll(songs);
-        Toast.makeText(context,"cette liste sera joué juste après celle en cours",Toast.LENGTH_LONG).show();
+        Toast.makeText(context,getString(R.string.la_liste_sera_joue_apres_celle_en_cours),Toast.LENGTH_LONG).show();
     }
 
     public void removeSong(int position) {
@@ -693,7 +703,7 @@ public class PlayerService extends MediaBrowserServiceCompat implements AudioMan
 
     public void playSongAt(final int position) {
         model.getPositionOfSongToPLay().setValue(position);
-        model.getCurrentPLayingMusic().setValue(model.getListOfSongToPlay().getValue().get(position));
+        model.getCurrentPLayingMusic().setValue(model.getPlayingQueue().getValue().get(position));
         loadMusic();
         play();
     }

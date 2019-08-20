@@ -5,7 +5,6 @@ import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.Observer;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -15,8 +14,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import com.example.kmp.Helper.Helper;
-import com.example.kmp.Modeles.Musique;
 import com.example.kmp.Modeles.Playlist;
 import com.example.kmp.R;
 import com.example.kmp.ViewModel.KmpViewModel;
@@ -24,7 +21,6 @@ import com.example.kmp.ViewModel.KmpViewModel;
 import java.util.List;
 
 import static android.view.View.GONE;
-import static android.view.View.VISIBLE;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -64,7 +60,7 @@ public class PlaylistFragment extends Fragment {
 
     private void configureModel() {
         model = KmpViewModel.getInstance(getActivity().getApplication(), getContext());
-        /*model.getPlaylists().observe(this, new Observer<List<Playlist>>() {
+        /*model.loadPlaylists().observe(this, new Observer<List<Playlist>>() {
             @Override
             public void onChanged(List<Playlist> list) {
                 if(list!=null && !list.isEmpty()){
@@ -76,7 +72,7 @@ public class PlaylistFragment extends Fragment {
             }
         });*/
 
-        //favoriteSong = model.getPlaylists().getValue();
+        //favoriteSong = model.loadPlaylists().getValue();
     }
 
     private void changeVisibility(View recyclerview, int visibilite1, View holderTextView, int visibilite2){
@@ -95,7 +91,7 @@ public class PlaylistFragment extends Fragment {
             recyclerView.setAdapter(adapter);
         }else{
 
-            //favoriteSong = model.getPlaylists().getValue();
+            //favoriteSong = model.loadPlaylists().getValue();
         }
     }
 
@@ -156,7 +152,7 @@ public class PlaylistFragment extends Fragment {
                 itemView.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-/*                        model.getListOfSongToPlay().setValue(Helper.matchCursorToMusics(favoriteSong));
+/*                        model.getListOfSongToPlay().setValue(Helper.matchBasicCursorToMusics(favoriteSong));
                         model.getPositionOfSongToPLay().setValue(position);*/
                     }
                 });

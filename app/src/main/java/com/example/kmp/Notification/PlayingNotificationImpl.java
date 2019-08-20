@@ -1,6 +1,5 @@
 package com.example.kmp.Notification;
 
-import android.app.Notification;
 import android.app.PendingIntent;
 import android.content.ComponentName;
 import android.content.Context;
@@ -14,19 +13,15 @@ import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
 import android.graphics.RectF;
-import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.text.TextUtils;
 import android.view.View;
-import android.widget.ImageView;
 import android.widget.RemoteViews;
 
 import androidx.core.app.NotificationCompat;
 import androidx.core.graphics.drawable.RoundedBitmapDrawable;
 import androidx.core.graphics.drawable.RoundedBitmapDrawableFactory;
 
-import com.bumptech.glide.Glide;
-import com.bumptech.glide.request.target.BitmapImageViewTarget;
 import com.example.kmp.Modeles.Musique;
 import com.example.kmp.Activity.PlayingMusicActivity;
 import com.example.kmp.R;
@@ -47,43 +42,27 @@ public class PlayingNotificationImpl extends PlayingNotification{
         isPlaying = service.isPlaying();
 
         final RemoteViews notificationLayout = new RemoteViews(service.getPackageName(), R.layout.notification_layout);
+        final RemoteViews notigicationBigContent = new RemoteViews(service.getPackageName(), R.layout.notification_expand_layout);
 
-        linkButtons(notificationLayout);
+        linkButtons(notificationLayout, notigicationBigContent);
 
         if(TextUtils.isEmpty(musique.getTitreMusique() )&& TextUtils.isEmpty(musique.getNomArtiste())){
             notificationLayout.setViewVisibility(R.id.media_titles, INVISIBLE);
         }else{
             notificationLayout.setViewVisibility(R.id.media_titles, View.VISIBLE);
+            notigicationBigContent.setViewVisibility(R.id.media_titles, View.VISIBLE);
+
             notificationLayout.setTextViewText(R.id.title, musique.getTitreMusique());
             notificationLayout.setTextViewText(R.id.text, musique.getNomArtiste());
-        }
 
-        Bitmap bitmap = BitmapFactory.decodeFile(musique.getPochette());
-        if(bitmap==null)
-            bitmap = BitmapFactory.decodeResource(service.getResources(),R.drawable.logo);
+            notigicationBigContent.setTextViewText(R.id.title, musique.getTitreMusique());
+            notigicationBigContent.setTextViewText(R.id.text, musique.getNomArtiste());
+        }
 
         notificationLayout.setImageViewBitmap(R.id.image,buildCircleBitmap(musique.getPochette(),service.getResources(),0));
 
-/*        ImageView imageView = new ImageView(service.getApplicationContext());
-        Glide.with(service.getApplicationContext())
-                .load(musique.getPochette())
-                .asBitmap()
-                .error(R.drawable.logo)
-                .placeholder(R.drawable.logo)
-                .centerCrop()
-                .into(new BitmapImageViewTarget(imageView){
-                    @Override
-                    protected void setResource(Bitmap resource) {
-                        RoundedBitmapDrawable drawable = RoundedBitmapDrawableFactory.create(service.getApplicationContext().getResources(),
-                                Bitmap.createScaledBitmap(resource,52,52,false));
-                        drawable.setCircular(true);
-                        notificationLayout.setImageViewBitmap(R.id.image,drawable.getBitmap());
-                    }
-                });*/
-
-
-
         notificationLayout.setImageViewResource(R.id.action_play_pause, isPlaying?R.drawable.ic_pause_black_24dp:R.drawable.ic_play_arrow_black_24dp);
+        notigicationBigContent.setImageViewResource(R.id.action_play_pause, isPlaying?R.drawable.ic_pause_black_24dp:R.drawable.ic_play_arrow_black_24dp);
 
         Intent action = new Intent(service, PlayingMusicActivity.class);
         action.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
@@ -93,21 +72,45 @@ public class PlayingNotificationImpl extends PlayingNotification{
 /*
 .setSmallIcon(isPlaying?R.drawable.ic_play_arrow_black_24dp:R.drawable.ic_pause_black_24dp)
 */
-        final Notification notification = new NotificationCompat.Builder(service, NOTIFICATION_CHANNEL_ID)
-                .setSmallIcon(R.drawable.logo,10)
+
+        NotificationCompat.Builder builder= new NotificationCompat.Builder(service, NOTIFICATION_CHANNEL_ID)
+                .setSmallIcon(R.drawable.logo)
+                .setLargeIcon(buildCircleBitmap(musique.getPochette(),service.getResources(),0))
                 .setContentIntent(clicIntent)
                 .setDeleteIntent(deleteIntent)
                 .setCategory(NotificationCompat.CATEGORY_SERVICE)
                 .setPriority(NotificationCompat.PRIORITY_MAX)
                 .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-                .setCustomContentView(notificationLayout)
-                .setOngoing(isPlaying)
+                .setStyle(new androidx.media.app.NotificationCompat.DecoratedMediaCustomViewStyle()
+                        .setMediaSession(service.getMediaSession().getSessionToken())
+                        .setShowActionsInCompactView(0,1,2))
                 .setShowWhen(false)
-                .setStyle(new androidx.media.app.NotificationCompat.DecoratedMediaCustomViewStyle())
-                .build();
+                .setContentTitle(musique.getTitreMusique())
+                .setContentText(musique.getTitreAlbum());
 
-        updateNotifyModeAndPostNotification(notification);
+        addActionsOnNotifications(builder);
 
+        updateNotifyModeAndPostNotification(builder.build());
+
+    }
+
+    private void addActionsOnNotifications(NotificationCompat.Builder builder) {
+        PendingIntent pendingIntent;
+        final ComponentName serviceName = new ComponentName(service,PlayerService.class);
+        pendingIntent = buildPendingIntent(service, PlayerService.ACTION_REWIND, serviceName);
+        NotificationCompat.Action prevAction = new NotificationCompat.Action(R.drawable.ic_skip_previous_black_24dp,null,pendingIntent);
+
+        pendingIntent = buildPendingIntent(service, PlayerService.ACTION_TOGGLE_PAUSE, serviceName);
+        NotificationCompat.Action playPauseAction = new NotificationCompat.Action(isPlaying?R.drawable.ic_pause_black_24dp:R.drawable.ic_play_arrow_black_24dp,null,pendingIntent);
+
+
+        pendingIntent = buildPendingIntent(service, PlayerService.ACTION_SKIP, serviceName);
+        NotificationCompat.Action nextAction = new NotificationCompat.Action(R.drawable.ic_skip_next_black_24dp,null,pendingIntent);
+
+        builder
+                .addAction(prevAction)
+                .addAction(playPauseAction)
+                .addAction(nextAction);
     }
 
     private RoundedBitmapDrawable getRoundedBitmapDrawable(Musique musique) {
@@ -122,17 +125,20 @@ public class PlayingNotificationImpl extends PlayingNotification{
         return drawable;
     }
 
-    private void linkButtons(RemoteViews notificationLayout){
+    private void linkButtons(RemoteViews notificationLayout, RemoteViews notificationBigContent){
         PendingIntent pendingIntent;
         final ComponentName serviceName = new ComponentName(service,PlayerService.class);
         pendingIntent = buildPendingIntent(service, PlayerService.ACTION_REWIND, serviceName);
         notificationLayout.setOnClickPendingIntent(R.id.action_prev, pendingIntent);
+        notificationBigContent.setOnClickPendingIntent(R.id.action_prev, pendingIntent);
 
         pendingIntent = buildPendingIntent(service, PlayerService.ACTION_TOGGLE_PAUSE, serviceName);
         notificationLayout.setOnClickPendingIntent(R.id.action_play_pause, pendingIntent);
+        notificationBigContent.setOnClickPendingIntent(R.id.action_play_pause, pendingIntent);
 
         pendingIntent = buildPendingIntent(service, PlayerService.ACTION_SKIP, serviceName);
         notificationLayout.setOnClickPendingIntent(R.id.action_next, pendingIntent);
+        notificationBigContent.setOnClickPendingIntent(R.id.action_next, pendingIntent);
     }
 
     private PendingIntent buildPendingIntent(Context context, final String action, final ComponentName componentName){
@@ -160,7 +166,9 @@ public class PlayingNotificationImpl extends PlayingNotification{
             bitmap = BitmapFactory.decodeResource(service.getResources(),R.drawable.logo);
         }
 
-        Bitmap output = Bitmap.createBitmap(bitmap.getWidth(), bitmap.getHeight(), Bitmap.Config.ARGB_8888);
+        return bitmap;
+
+        /*Bitmap output = Bitmap.createBitmap(bitmap.getWidth(), bitmap.getHeight(), Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(output);
 
         final int color = res.getColor(android.R.color.white);
@@ -175,9 +183,7 @@ public class PlayingNotificationImpl extends PlayingNotification{
 
         paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_IN));
         canvas.drawBitmap(bitmap,rect, rect, paint);
-        bitmap.recycle();
-
-        return output;
+        bitmap.recycle();*/
     }
 
 

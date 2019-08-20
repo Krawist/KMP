@@ -40,13 +40,30 @@ public class PlaybackImpl implements Playback, MediaPlayer.OnErrorListener, Medi
         }else if(service.isLastTrack()){
             if(service.getRepeatMode()==REPEAT_MODE_ALL|| service.getRepeatMode()==REPEAT_MODE_GROUP){
                 service.playNextSong();
+                if(service.getShuffleMode()){
+                    PlayerService.numberOfSongPlayedInShuffleMode++;
+                }
             }else{
-                stop();
-                service.updatePosition(service.getNextPosition());
+                if(service.getShuffleMode()){
+                    if(PlayerService.numberOfSongPlayedInShuffleMode>=service.getPlayingQueueSize()){
+                        stop();
+                        service.updatePosition(service.getNextPosition());
+                    }else{
+                        service.playNextSong();
+                        PlayerService.numberOfSongPlayedInShuffleMode++;
+                    }
+                }else{
+                    stop();
+                    service.updatePosition(service.getNextPosition());
+                }
             }
         }else {
             service.playNextSong();
+            if(service.getShuffleMode()){
+                PlayerService.numberOfSongPlayedInShuffleMode++;
+            }
         }
+
     }
 
     @Override

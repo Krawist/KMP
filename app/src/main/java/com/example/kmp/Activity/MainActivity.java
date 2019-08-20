@@ -6,18 +6,14 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
 import android.os.Bundle;
 
-import com.bumptech.glide.Glide;
-import com.bumptech.glide.request.target.BitmapImageViewTarget;
 import com.example.kmp.Fragment.AlbumFragment;
 import com.example.kmp.Fragment.AllMusicFragment;
 import com.example.kmp.Fragment.ArtistDetailFragment;
 import com.example.kmp.Fragment.ArtistFragment;
 import com.example.kmp.Fragment.DetailAlbumFragment;
 import com.example.kmp.Fragment.FavoriFragment;
-import com.example.kmp.Fragment.PlaylistFragment;
 import com.example.kmp.Helper.Helper;
 import com.example.kmp.Modeles.Album;
 import com.example.kmp.Modeles.Artiste;
@@ -32,8 +28,6 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
-import androidx.core.graphics.drawable.RoundedBitmapDrawable;
-import androidx.core.graphics.drawable.RoundedBitmapDrawableFactory;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentPagerAdapter;
@@ -81,7 +75,6 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_main);
-
         configureToolbar();
 
         if(ActivityCompat.checkSelfPermission(this,Manifest.permission.READ_EXTERNAL_STORAGE)==PackageManager.PERMISSION_GRANTED){
@@ -157,6 +150,10 @@ public class MainActivity extends AppCompatActivity {
         configureView();
 
         configureViewModel();
+
+/*        Intent intent = new Intent(this,PlayerService.class);
+        intent.setAction(PlayerService.ACTION_LOAD);
+        startService(intent);*/
     }
 
     private void configureViewModel() {
@@ -288,15 +285,15 @@ public class MainActivity extends AppCompatActivity {
     public void playAfterCurrent(Musique musique) {
         // ajoute le song juste apres celui en cours
         if(bound){
-            int nextPosition = service.getNextPosition();
-            service.addSong(nextPosition,musique);
+            service.addSong(service.getNextPosition(),musique);
         }
     }
 
     public void playListAfterCurrent(List<Musique> musiques) {
         // ajoute la liste juste apres le song en cours en cours
         if(bound){
-            service.addSongs(service.getNextPosition(), musiques);
+            int next = service.getNextPosition();
+            model.getPlayingQueue().getValue().addAll(next,musiques);
         }
     }
 
@@ -324,7 +321,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void addListToPlaylist(List<Musique> musiques){
         if(bound){
-            service.addSongs(musiques);
+            model.getPlayingQueue().getValue().addAll(musiques);
         }
     }
 
@@ -365,9 +362,6 @@ public class MainActivity extends AppCompatActivity {
 
                 case 3:
                     return new ArtistFragment();
-
-                case 4:
-                    return new PlaylistFragment();
             }
 
             return fragment;
@@ -375,7 +369,7 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public int getCount() {
-            return 5;
+            return 4;
         }
     }
 

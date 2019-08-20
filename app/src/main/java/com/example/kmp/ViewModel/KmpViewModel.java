@@ -8,6 +8,7 @@ import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.os.AsyncTask;
 import android.preference.PreferenceManager;
+import android.provider.MediaStore;
 import android.support.v4.media.session.PlaybackStateCompat;
 
 import androidx.core.content.ContextCompat;
@@ -17,14 +18,17 @@ import androidx.lifecycle.MutableLiveData;
 
 import com.example.kmp.Helper.Helper;
 import com.example.kmp.Modeles.Album;
-import com.example.kmp.Modeles.Artiste;
+import com.example.kmp.Modeles.BaseMusique;
+import com.example.kmp.Modeles.JOIN_MUSIQUE_PLAYLIST;
 import com.example.kmp.Modeles.Musique;
+import com.example.kmp.Modeles.Favori;
 import com.example.kmp.Modeles.Playlist;
 import com.example.kmp.Room.Repository;
 import com.example.kmp.Service.PlayerService;
 import com.google.gson.Gson;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 public class KmpViewModel extends AndroidViewModel {
@@ -46,7 +50,7 @@ public class KmpViewModel extends AndroidViewModel {
     private MutableLiveData<Boolean> shuffleMode;
     private MutableLiveData<List<Musique>> playlistSongs;
     private MutableLiveData<List<Musique>> playingQueue;
-
+    private LiveData<List<Musique>> userPlayListSongs;
 
     private static KmpViewModel INSTANCE = null;
 
@@ -90,7 +94,7 @@ public class KmpViewModel extends AndroidViewModel {
         positionOfSongToPLay.setValue(lastPLayedSongPosition);
 
         List<Musique> list = new ArrayList<>();
-        Musique[] array = gson.fromJson(sharedPreferences.getString(PlayerService.PREFERENCES_LAST_LOADED_PLAYLIST_KEY,null),Musique[].class);
+        Musique[] array = gson.fromJson(sharedPreferences.getString(PlayerService.PREFERENCES_LAST_LOADED_PLAYLIST_KEY,null), Musique[].class);
 
         if(array!=null) {
             for (int i = 0; i < array.length; i++) {
@@ -100,7 +104,7 @@ public class KmpViewModel extends AndroidViewModel {
         listOfSongToPlay.setValue(list);
 
         list.clear();
-        array = gson.fromJson(sharedPreferences.getString(PlayerService.PREFERENCES_LAST_ACTIVE_PLAYLIST_KEY, null),Musique[].class);
+        array = gson.fromJson(sharedPreferences.getString(PlayerService.PREFERENCES_LAST_ACTIVE_PLAYLIST_KEY, null), Musique[].class);
         if(array!=null){
             for (int i = 0; i < array.length; i++) {
                 list.add(array[i]);
@@ -159,14 +163,7 @@ public class KmpViewModel extends AndroidViewModel {
 
     public LiveData<List<Musique>> getAllAlbumMusics(Context context, Album album) {
 
-        allAlbumMusics = repository.getAllAlbumSongs(context, album.getIdAlbum());
-
-        return allAlbumMusics;
-    }
-
-    public LiveData<List<Musique>> getAllArtistMusics(Context context, Artiste artiste) {
-
-        allArtistMusics = repository.getArtistSongs(context, artiste.getIdArtiste());
+        allAlbumMusics = repository.getAllAlbumSongs(album.getIdAlbum());
 
         return allAlbumMusics;
     }
@@ -192,17 +189,9 @@ public class KmpViewModel extends AndroidViewModel {
     }
 
     public LiveData<List<Musique>> getArtistSongs(Context context, int artistId){
-        allArtistMusics = repository.getArtistSongs(context, artistId);
+        allArtistMusics = repository.getArtistSongs(artistId);
         //new UpdateMusicAsyncTask(context, allArtistMusics).execute();
         return allArtistMusics;
-    }
-
-    public void removeSongFromFavorite(Musique musique){
-        repository.removeFromFavorite(musique);
-    }
-
-    public void addToFromFavorite(Musique musique){
-        repository.addToFavorite(musique);
     }
 
     public void setPlayingList(List<Musique> musiques, Context context){
@@ -232,6 +221,11 @@ public class KmpViewModel extends AndroidViewModel {
         return INSTANCE;
     }
 
+    public LiveData<List<Musique>> getUserPlayListSongs(int idPlaylist) {
+
+        return repository.getUserPlayListSong(idPlaylist);
+    }
+
     public void setPlayingSongPositionInMilli(int songProgressMillis, Context context) {
         getPlayingSongPosition().setValue(songProgressMillis);
     }
@@ -243,40 +237,89 @@ public class KmpViewModel extends AndroidViewModel {
             allAlbums.setValue(repository.loadAllAlbums(context));
             allArtistes.setValue(repository.loadAllArtists(context));
             favoriteSongs = repository.getFavoriteMusique();
-            playlists.setValue(Helper.matchCursorToPlaylist(repository.getPlaylists(context)));
+            playlists.setValue(Helper.matchCursorToPlaylist(repository.loadPlaylists(context)));
 
-            new UpdateMusicAsyncTask(context, Helper.matchCursorToMusics(Helper.getAllMusic(context))).execute();
+            new UpdateMusicAsyncTask(context, Helper.matchBasicCursorToMusics(Helper.getAllMusic(context))).execute();
+
+            //new UpdatePlaylistAsyncTask(context).execute();
 
         }else{
 
         }
     }
 
-    private void insertMusique(Musique musique){
+    public void addToFavorite(Favori favori){
+        repository.insertFavori(favori);
+    }
+
+    public void removeFromFavorite(Favori favori){repository.removeFromFavori(favori);}
+
+    private void insertMusique(BaseMusique musique){
+
         repository.insertSong(musique);
     }
 
-    private class UpdateMusicAsyncTask extends AsyncTask<Void, Void, List<Musique>>{
+    public void insertJoinMusique(JOIN_MUSIQUE_PLAYLIST join_musique_playlist){
+        repository.addSongToPlaylist(join_musique_playlist);
+    }
+
+    public void deleteMusique(BaseMusique musique){
+        repository.deleteMusique(musique);
+    }
+
+    private class UpdateMusicAsyncTask extends AsyncTask<Void, Void, List<BaseMusique>>{
 
         Context context;
-        List<Musique> musiqueList;
-        public UpdateMusicAsyncTask(Context context, List<Musique> musiques ){
+        List<BaseMusique> musiqueList;
+        public UpdateMusicAsyncTask(Context context, List<BaseMusique> musiques ){
             this.context = context;
             this.musiqueList = musiques;
         }
 
         @Override
-        protected List<Musique> doInBackground(Void... voids) {
+        protected List<BaseMusique> doInBackground(Void... voids) {
             return Helper.updateMusic(musiqueList, context);
         }
 
         @Override
-        protected void onPostExecute(List<Musique> musiques) {
+        protected void onPostExecute(List<BaseMusique> musiques) {
 
-            for (Musique musique:
+            for (BaseMusique musique:
                     musiques) {
-                musique.setLiked(false);
                 insertMusique(musique);
+            }
+        }
+    }
+
+    private class UpdatePlaylistAsyncTask extends AsyncTask<Void, Void, List<JOIN_MUSIQUE_PLAYLIST>>{
+
+        private final Context context;
+
+        public UpdatePlaylistAsyncTask(Context context){
+            this.context = context;
+        }
+
+        @Override
+        protected List<JOIN_MUSIQUE_PLAYLIST> doInBackground(Void... voids) {
+            Cursor cursor = Helper.getPLaysListSongs(context);
+            List<JOIN_MUSIQUE_PLAYLIST> list = new ArrayList<>();
+            if(cursor!=null){
+                while (cursor.moveToNext()){
+                    int idPlaylist = cursor.getInt(cursor.getColumnIndex(MediaStore.Audio.Playlists.Members.PLAYLIST_ID));
+                    int idMusique = cursor.getInt(cursor.getColumnIndex(MediaStore.Audio.Playlists.Members.AUDIO_ID));
+                    JOIN_MUSIQUE_PLAYLIST join_musique_playlist = new JOIN_MUSIQUE_PLAYLIST(idPlaylist,idMusique);
+                    list.add(join_musique_playlist);
+                }
+            }
+
+            return list;
+        }
+
+        @Override
+        protected void onPostExecute(List<JOIN_MUSIQUE_PLAYLIST> join_musique_playlists) {
+            super.onPostExecute(join_musique_playlists);
+            for(JOIN_MUSIQUE_PLAYLIST join_musique_playlist: join_musique_playlists){
+                insertJoinMusique(join_musique_playlist);
             }
         }
     }

@@ -127,4 +127,10 @@
     <string name="lire_juste_apres">Lire juste après</string>
     <string name="ajouter_a_la_playlist">Ajouter à la playlist</string>
     <string name="jouer_tout">Jouer tout</string>
+    <string name="le_song_sera_jouer_juste_apres">Le song sera joué juste après celui en cours</string>
+    <string name="le_song_sera_joue_apres_la_liste_en_cours">Le song sera joué juste aprèsla liste de lecture en cours</string>
+    <string name="la_liste_sera_joue_apres_le_song_en_cours">cette liste sera joué juste après le song en cours</string>
+    <string name="la_liste_sera_joue_apres_celle_en_cours">cette liste sera joué juste après celle en cours</string>
+    <string name="retirer_des_favoris">Retirer des favoris</string>
+    <string name="ajouter_aux_favori">Ajouter aux favoris</string>
 </resources>

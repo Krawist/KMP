@@ -1,7 +1,7 @@
 package com.example.kmp.Fragment;
 
 
-import android.content.Intent;
+import android.app.Dialog;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -15,20 +15,19 @@ import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.example.kmp.Activity.MainActivity;
 import com.example.kmp.Helper.Helper;
+import com.example.kmp.Modeles.Favori;
 import com.example.kmp.Modeles.Musique;
 import com.example.kmp.R;
-import com.example.kmp.Service.PlayerService;
 import com.example.kmp.ViewModel.KmpViewModel;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.List;
-
-import static com.example.kmp.Service.PlayerService.ACTION_PLAY_PLAYLIST;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -70,43 +69,12 @@ public class AllMusicFragment extends Fragment {
         return view;
     }
 
-    @Override
-    public boolean onContextItemSelected(MenuItem item) {
-        int position = item.getGroupId();
-        switch (item.getItemId()){
-
-            case R.id.action_add_to_playlist:
-                ((MainActivity)getContext()).addToPlaylist(musiqueList.get(position));
-                break;
-
-            case R.id.action_play_after_current:
-                ((MainActivity)getContext()).playAfterCurrent(musiqueList.get(position));
-                break;
-
-            case R.id.action_partager:
-                Helper.shareMusics(getContext(),musiqueList.get(position));
-                return true;
-
-            case R.id.action_supprimer:
-                Helper.deleteMusics(getContext(),musiqueList.get(position));
-                return true;
-
-            case R.id.action_details:
-                Helper.showDetailsOf(getContext(),musiqueList.get(position));
-                return true;
-        }
-        return super.onContextItemSelected(item);
-    }
-
-    private void addToNext(Musique musique) {
-        ((MainActivity)getContext()).playAfterCurrent(musique);
-    }
-
     private void configureModel() {
         model = KmpViewModel.getInstance(getActivity().getApplication(), getContext());
         model.getAllSongs().observe(this, new Observer<List<Musique>>() {
             @Override
-            public void onChanged(List<Musique> cursor) {
+            public void onChanged(List<Musique> list) {
+                musiqueList = list;
                 configureAdapter();
             }
         });
@@ -120,7 +88,6 @@ public class AllMusicFragment extends Fragment {
             }else{
                 adapter = new AllMusicAdapter();
             }
-
             recyclerView.setAdapter(adapter);
         }else{
             musiqueList = model.getAllSongs().getValue();
@@ -129,6 +96,14 @@ public class AllMusicFragment extends Fragment {
 
     private void configureRecyclerView() {
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+    }
+
+    @Override
+    public boolean onContextItemSelected(MenuItem item) {
+        if(getUserVisibleHint()){
+            Helper.handleMusicContextItemSelected(getContext(),item,musiqueList);
+        }
+        return super.onContextItemSelected(item);
     }
 
     public class AllMusicAdapter extends RecyclerView.Adapter<AllMusicAdapter.MusiqueViewHolder> {
@@ -192,17 +167,7 @@ public class AllMusicFragment extends Fragment {
                     }
                 });
 
-                itemView.setOnCreateContextMenuListener(new View.OnCreateContextMenuListener() {
-                    @Override
-                    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
-                        menu.setHeaderTitle(musique.getTitreMusique());
-                        menu.add(position,R.id.action_play_after_current,0,getString(R.string.jouer_apres));
-                        menu.add(position,R.id.action_add_to_playlist,1,getString(R.string.ajouter_a_la_playlist));
-                        menu.add(position,R.id.action_partager,2,getString(R.string.partager));
-                        menu.add(position,R.id.action_supprimer,3,getString(R.string.supprimer));
-                        menu.add(position,R.id.action_details,4,getString(R.string.details));
-                    }
-                });
+                Helper.builMusicItemContextMenu(getContext(),itemView,musique,position);
             }
         }
     }

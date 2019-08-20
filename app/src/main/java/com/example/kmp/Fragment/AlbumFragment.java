@@ -48,7 +48,7 @@ public class AlbumFragment extends Fragment {
         View view = inflater.inflate(R.layout.simple_list,container,false);
 
         recyclerView = view.findViewById(R.id.recyclerview_simple_list_items);
-        //((MainActivity)getContext()).findViewById(R.id.floating_button_simple_list_shuffle_play).setVisibility(View.GONE);
+        view.findViewById(R.id.floating_button_simple_list_shuffle_play).setVisibility(View.GONE);
 
         configureRecyclerView();
 
@@ -66,29 +66,11 @@ public class AlbumFragment extends Fragment {
         model.getAllAlbums().observe(this, new Observer<Cursor>() {
             @Override
             public void onChanged(Cursor cursor) {
+                AlbumFragment.this.cursor = cursor;
                 configureAdapter();
             }
         });
         cursor = model.getAllAlbums().getValue();
-    }
-
-    @Override
-    public boolean onContextItemSelected(MenuItem item) {
-
-        int position = item.getGroupId();
-
-        switch (item.getItemId()){
-
-            case R.id.action_add_to_playlist:
-                ((MainActivity)getContext()).addListToPlaylist(model.getAllAlbumMusics().getValue());
-                break;
-
-            case R.id.action_play_after_current:
-                ((MainActivity)getContext()).playListAfterCurrent(model.getAllAlbumMusics().getValue());
-                break;
-        }
-
-        return super.onContextItemSelected(item);
     }
 
     private void configureAdapter() {
@@ -169,15 +151,6 @@ public class AlbumFragment extends Fragment {
                 }
             });
 
-            itemView.setOnCreateContextMenuListener(new View.OnCreateContextMenuListener() {
-                @Override
-                public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
-                    menu.setHeaderTitle(album.getTitreAlbum());
-                    menu.add(position,R.id.action_play_after_current,0,getString(R.string.lire_juste_apres));
-                    menu.add(position,R.id.action_add_to_playlist, 1, getString(R.string.ajouter_a_la_playlist));
-
-                }
-            });
         }
     }
 
