@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".Activity.PermissionActivity"
+    android:background="@color/colorPrimary">
+
+    <Button
+        android:id="@+id/button_grant_permission"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@android:color/white"
+        android:text="Donner les Permissons"
+        android:backgroundTint="@color/colorPrimaryDark"
+        android:layout_centerInParent="true"
+        android:layout_below="@id/textview_description"
+        android:layout_margin="@dimen/fab_margin"/>
+
+    <TextView
+        android:id="@+id/textview_description"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="KMP est un lecteur audio classique permettant de suivre la musique, constitué une liste de
+de son favoris, de les ecouter. \n il est possible de consulter tous les song de son appareil, les albums, les artistes et les playlists. \n \n\n
+Pour utiliser cette applications vous devez attribuer les droids d'acceder à vos audio."
+        android:textColor="@android:color/white"
+        android:textStyle="italic"
+        android:layout_centerInParent="true"
+        android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+        android:padding="@dimen/fab_margin"
+        android:gravity="center"/>
+
+</RelativeLayout>

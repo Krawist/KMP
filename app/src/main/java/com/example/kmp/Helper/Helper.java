@@ -7,12 +7,10 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
-import android.drm.DrmStore;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.provider.MediaStore;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -37,7 +35,6 @@ import com.bumptech.glide.request.target.BitmapImageViewTarget;
 import com.example.kmp.Activity.MainActivity;
 import com.example.kmp.Modeles.Album;
 import com.example.kmp.Modeles.Artiste;
-import com.example.kmp.Modeles.BaseMusique;
 import com.example.kmp.Modeles.Favori;
 import com.example.kmp.Modeles.Musique;
 import com.example.kmp.Modeles.Playlist;
@@ -56,6 +53,7 @@ public class Helper {
 
     public static final String PREFERENCES_LOOPING_MODE_KEY = "looping_mode";
     public static final String PREFERENCES_SHUFFLE_MODE_KEY = "shuffle_mode";
+    public static final int TRANSITION_TIME = 2000;
 
     public static Cursor getAllMusic(Context context){
 
@@ -101,12 +99,79 @@ public class Helper {
         return context.getContentResolver().query(MediaStore.Audio.Artists.EXTERNAL_CONTENT_URI, projection, null, null, MediaStore.Audio.Artists.ARTIST);
     }
 
-    public static List<BaseMusique> matchBasicCursorToMusics(Cursor cursor){
+    public static Cursor getAlbumMusic(Context context, int albumId){
 
-        ArrayList<BaseMusique> list = new ArrayList<>();
+        String[] projection = {MediaStore.Audio.Media._ID,
+                MediaStore.Audio.Media.ALBUM,
+                MediaStore.Audio.Media.TITLE,
+                MediaStore.Audio.Media.ALBUM_ID,
+                MediaStore.Audio.Media.ARTIST,
+                MediaStore.Audio.Media.ARTIST_ID,
+                MediaStore.Audio.Media.DURATION,
+                MediaStore.Audio.Media.DATA,
+                MediaStore.Audio.Media.TRACK,
+                MediaStore.Audio.Media.IS_MUSIC,
+                MediaStore.Audio.Media.SIZE,
+                MediaStore.Audio.Media.BOOKMARK};
+
+        String selection = MediaStore.Audio.Media.IS_MUSIC + " = ? AND " + MediaStore.Audio.Media.ALBUM_ID + " = ?";
+
+        String[] selectionArgs = {String.valueOf(1), String.valueOf(albumId)};
+
+        return context.getContentResolver().query(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,projection,selection,selectionArgs,MediaStore.Audio.Media.TRACK);
+    }
+
+    public static Cursor getAllArtistSongs(Context context, int artisId) {
+        String[] projection = {MediaStore.Audio.Media._ID,
+                MediaStore.Audio.Media.ALBUM,
+                MediaStore.Audio.Media.TITLE,
+                MediaStore.Audio.Media.ALBUM_ID,
+                MediaStore.Audio.Media.ARTIST,
+                MediaStore.Audio.Media.ARTIST_ID,
+                MediaStore.Audio.Media.DURATION,
+                MediaStore.Audio.Media.DATA,
+                MediaStore.Audio.Media.TRACK,
+                MediaStore.Audio.Media.IS_MUSIC,
+                MediaStore.Audio.Media.SIZE,
+                MediaStore.Audio.Media.BOOKMARK};
+
+        String selection = MediaStore.Audio.Media.IS_MUSIC + " = ? AND " + MediaStore.Audio.Media.ARTIST_ID + " = ?";
+
+        String[] selectionArgs = {String.valueOf(1), String.valueOf(artisId)};
+
+        return context.getContentResolver().query(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,projection,selection,selectionArgs,MediaStore.Audio.Media.TRACK);
+    }
+
+    public static Cursor getPlaylist(Context context){
+
+        String[] projection = {
+                MediaStore.Audio.Playlists._ID,
+                MediaStore.Audio.Playlists.NAME
+        };
+
+        return context.getContentResolver().query(MediaStore.Audio.Playlists.EXTERNAL_CONTENT_URI,projection, null, null, MediaStore.Audio.Playlists.DEFAULT_SORT_ORDER);
+    }
+
+    public static Cursor getPLaysListSongs(Context context, int idPlaylist){
+        String[] projection = {
+                MediaStore.Audio.Playlists.Members.AUDIO_ID,
+                MediaStore.Audio.Playlists.Members.IS_MUSIC,
+                MediaStore.Audio.Playlists.Members.PLAYLIST_ID,
+
+        };
+
+        String selection = MediaStore.Audio.Playlists.Members.IS_MUSIC + " = ? AND "+ MediaStore.Audio.Playlists.Members.PLAYLIST_ID + " = ?";
+        String[] selectionARgs = {"1", String.valueOf(idPlaylist)};
+
+        return context.getContentResolver().query(MediaStore.Audio.Playlists.EXTERNAL_CONTENT_URI, projection,selection,selectionARgs, MediaStore.Audio.Playlists.Members.DEFAULT_SORT_ORDER);
+    }
+
+    public static List<Musique> matchBasicCursorToMusics(Cursor cursor){
+
+        ArrayList<Musique> list = new ArrayList<>();
         cursor.moveToPosition(-1);
         while (cursor.moveToNext()){
-            BaseMusique musique= new BaseMusique();
+            Musique musique= new Musique();
             musique.setIdMusique(cursor.getInt(cursor.getColumnIndex(MediaStore.Audio.Media._ID)));
             musique.setIdAlbum(cursor.getInt(cursor.getColumnIndex(MediaStore.Audio.Media.ALBUM_ID)));
             musique.setIdArtiste(cursor.getInt(cursor.getColumnIndex(MediaStore.Audio.Media.ARTIST_ID)));
@@ -125,85 +190,6 @@ public class Helper {
         }
 
         return list;
-    }
-
-    public static List<Album> matchCursorToAlbums(Cursor cursor){
-
-        ArrayList<Album> list = new ArrayList<>();
-
-        while (cursor.moveToNext()){
-            Album album = new Album();
-
-            album.setIdAlbum(cursor.getInt(cursor.getColumnIndex(MediaStore.Audio.Albums._ID)));
-            album.setNomArtiste(cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Albums.ARTIST)));
-            album.setNombreMusique(cursor.getInt(cursor.getColumnIndex(MediaStore.Audio.Albums.NUMBER_OF_SONGS)));
-            album.setTitreAlbum(cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM)));
-            album.setPochette(cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM_ART)));
-
-            list.add(album);
-        }
-
-        return list;
-    }
-
-    public static List<Artiste> matchCursorToArtists(Cursor cursor){
-
-        List<Artiste> list = new ArrayList<>();
-
-        while (cursor.moveToNext()){
-            Artiste artiste = new Artiste();
-
-            artiste.setIdArtiste(cursor.getInt(cursor.getColumnIndex(MediaStore.Audio.Artists._ID)));
-            artiste.setNomArtiste(cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Artists.ARTIST)));
-            artiste.setNombreAlbums(cursor.getInt(cursor.getColumnIndex(MediaStore.Audio.Artists.NUMBER_OF_ALBUMS)));
-            artiste.setNombreMusique(cursor.getInt(cursor.getColumnIndex(MediaStore.Audio.Artists.NUMBER_OF_TRACKS)));
-
-            list.add(artiste);
-        }
-
-        return list;
-    }
-
-    public static BaseMusique matchCursorToSpecificMusic(Cursor cursor, int position){
-
-        if(cursor!=null){
-            BaseMusique musique= new BaseMusique();
-            if(cursor.moveToPosition(position)){
-                musique.setIdMusique(cursor.getInt(cursor.getColumnIndex(MediaStore.Audio.Media._ID)));
-                musique.setIdAlbum(cursor.getInt(cursor.getColumnIndex(MediaStore.Audio.Media.ALBUM_ID)));
-                musique.setIdArtiste(cursor.getInt(cursor.getColumnIndex(MediaStore.Audio.Media.ARTIST_ID)));
-                musique.setNomArtiste(cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ARTIST)));
-                musique.setTitreAlbum(cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ALBUM)));
-                musique.setDuration(cursor.getInt(cursor.getColumnIndex(MediaStore.Audio.Media.DURATION)));
-                musique.setParoleMusique("");
-                musique.setPath(cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.DATA)));
-                musique.setPochette("");
-                musique.setSize(cursor.getInt(cursor.getColumnIndex(MediaStore.Audio.Media.SIZE)));
-                musique.setTrack(cursor.getInt(cursor.getColumnIndex(MediaStore.Audio.Media.TRACK)));
-                musique.setTitreMusique(cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.TITLE)));
-            }
-
-            return musique;
-        }
-
-        return null;
-    }
-
-    public static Album matchCursorToSpecificAlbum(Cursor cursor, int position){
-
-        if (cursor!=null){
-            Album album = new Album();
-            if(cursor.moveToPosition(position)){
-                album.setIdAlbum(cursor.getInt(cursor.getColumnIndex(MediaStore.Audio.Albums._ID)));
-                album.setNomArtiste(cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Albums.ARTIST)));
-                album.setNombreMusique(cursor.getInt(cursor.getColumnIndex(MediaStore.Audio.Albums.NUMBER_OF_SONGS)));
-                album.setTitreAlbum(cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM)));
-                album.setPochette(cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM_ART)));
-            }
-           return album;
-        }
-
-        return null;
     }
 
     public static Artiste matchCursorToSpecificArtist(Cursor cursor, int positon){
@@ -263,33 +249,10 @@ public class Helper {
         return time;
     }
 
-    public static Cursor getAlbumMusic(Context context, int albumId){
-
-        String[] projection = {MediaStore.Audio.Media._ID,
-                MediaStore.Audio.Media.ALBUM,
-                MediaStore.Audio.Media.TITLE,
-                MediaStore.Audio.Media.ALBUM_ID,
-                MediaStore.Audio.Media.ARTIST,
-                MediaStore.Audio.Media.ARTIST_ID,
-                MediaStore.Audio.Media.DURATION,
-                MediaStore.Audio.Media.DATA,
-                MediaStore.Audio.Media.TRACK,
-                MediaStore.Audio.Media.IS_MUSIC,
-                MediaStore.Audio.Media.SIZE,
-                MediaStore.Audio.Media.BOOKMARK};
-
-        String selection = MediaStore.Audio.Media.IS_MUSIC + " = ? AND " + MediaStore.Audio.Media.ALBUM_ID + " = ?";
-
-        String[] selectionArgs = {String.valueOf(1), String.valueOf(albumId)};
-
-        return context.getContentResolver().query(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,projection,selection,selectionArgs,MediaStore.Audio.Media.TRACK);
-    }
-
-    public static List<BaseMusique> updateMusic(List<BaseMusique> musiques, Context context){
-        for(BaseMusique musique: musiques){
+    public static List<Musique> updateMusic(List<Musique> musiques, Context context){
+        for(Musique musique: musiques){
             String[] projection = {MediaStore.Audio.Albums.ALBUM_ART, MediaStore.Audio.Albums._ID};
             String[] selectionArgs = {musique.getIdAlbum()+""};
-            //Log.e("Krawist"," Album Id "+musique.getAlbumId());
             String selection = MediaStore.Audio.Albums._ID + " = ?";
             Cursor anotherCursor = context.getContentResolver().query(MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI,projection,selection,selectionArgs,null);
             if(anotherCursor!=null && anotherCursor.moveToFirst()){
@@ -375,30 +338,6 @@ public class Helper {
             return track+"";
     }
 
-    public static Cursor getPlaylist(Context context){
-
-        String[] projection = {
-                MediaStore.Audio.Playlists._ID,
-                MediaStore.Audio.Playlists.NAME
-        };
-
-        return context.getContentResolver().query(MediaStore.Audio.Playlists.EXTERNAL_CONTENT_URI,projection, null, null, MediaStore.Audio.Playlists.DEFAULT_SORT_ORDER);
-    }
-
-    public static Cursor getPLaysListSongs(Context context){
-        String[] projection = {
-                MediaStore.Audio.Playlists.Members.AUDIO_ID,
-                MediaStore.Audio.Playlists.Members.IS_MUSIC,
-                MediaStore.Audio.Playlists.Members.PLAYLIST_ID,
-
-        };
-
-        String selection = MediaStore.Audio.Playlists.Members.IS_MUSIC + " = ?";
-        String[] selectionARgs = {"1"};
-
-        return context.getContentResolver().query(MediaStore.Audio.Playlists.EXTERNAL_CONTENT_URI, projection,selection,selectionARgs, MediaStore.Audio.Playlists.Members.DEFAULT_SORT_ORDER);
-    }
-
     public static void shareMusics(Context context, Musique... musiques){
         Intent shareIntent = new Intent(Intent.ACTION_SEND_MULTIPLE);
         ArrayList<Uri> listUris = new ArrayList<>();
@@ -454,36 +393,15 @@ public class Helper {
             /* on efface le fichier de la machine */
             File file = new File(musiques[i].getPath());
             file.delete();
+
+
             /* on efface le fichier du provider*/
             String where = MediaStore.Audio.Media._ID +" = ?";
             String[] args = {musiques[i].getIdMusique()+""};
             context.getContentResolver().delete(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,where,args);
-            /* on efface la musique du romm database*/
-            model.deleteMusique(musiques[i]);
         }
         model.refreshData(context);
         dialog.dismiss();
-    }
-
-    public static Dialog buildCOnfirmationDialog(Context context, String text,
-                                                 String cancelMessage,
-                                                 String validateMessage,
-                                                 View.OnClickListener cancelButtonEvent,
-                                                 View.OnClickListener validateClicEvent,
-                                                 boolean cancelOnTouchOutside){
-        Dialog dialog = new Dialog(context);
-        dialog.setContentView(R.layout.dialog_confirmation_layout);
-        ((TextView)dialog.findViewById(R.id.textview_confirmation_text)).setText(text);
-        Button cancelButton = dialog.findViewById(R.id.button_confirmation_cancel);
-        cancelButton.setText(cancelMessage);
-        cancelButton.setOnClickListener(cancelButtonEvent);
-        Button validateButton = dialog.findViewById(R.id.button_confirmation_validate);
-        validateButton.setText(validateMessage);
-        validateButton.setOnClickListener(validateClicEvent);
-
-        dialog.setCanceledOnTouchOutside(cancelOnTouchOutside);
-
-        return dialog;
     }
 
     public static void addSongToPlaylist(final Musique musique, final Context context, final List<Playlist> playlistList) {
@@ -680,5 +598,59 @@ public class Helper {
 
         return false;
     }
-    
+
+    public static List<Album> matchCursorToAlbums(Cursor cursor){
+
+        ArrayList<Album> list = new ArrayList<>();
+
+        while (cursor.moveToNext()){
+            Album album = new Album();
+
+            album.setIdAlbum(cursor.getInt(cursor.getColumnIndex(MediaStore.Audio.Albums._ID)));
+            album.setNomArtiste(cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Albums.ARTIST)));
+            album.setNombreMusique(cursor.getInt(cursor.getColumnIndex(MediaStore.Audio.Albums.NUMBER_OF_SONGS)));
+            album.setTitreAlbum(cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM)));
+            album.setPochette(cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM_ART)));
+
+            list.add(album);
+        }
+
+        return list;
+    }
+
+    public static List<Artiste> matchCursorToArtists(Cursor cursor){
+
+        List<Artiste> list = new ArrayList<>();
+
+        while (cursor.moveToNext()){
+            Artiste artiste = new Artiste();
+
+            artiste.setIdArtiste(cursor.getInt(cursor.getColumnIndex(MediaStore.Audio.Artists._ID)));
+            artiste.setNomArtiste(cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Artists.ARTIST)));
+            artiste.setNombreAlbums(cursor.getInt(cursor.getColumnIndex(MediaStore.Audio.Artists.NUMBER_OF_ALBUMS)));
+            artiste.setNombreMusique(cursor.getInt(cursor.getColumnIndex(MediaStore.Audio.Artists.NUMBER_OF_TRACKS)));
+
+            list.add(artiste);
+        }
+
+        return list;
+    }
+
+    public static Cursor getFavoriteSongs(Context context, List<Favori> favoriList) {
+        String[] projection = {MediaStore.Audio.Media._ID,
+                MediaStore.Audio.Media.ALBUM,
+                MediaStore.Audio.Media.TITLE,
+                MediaStore.Audio.Media.ALBUM_ID,
+                MediaStore.Audio.Media.ARTIST,
+                MediaStore.Audio.Media.ARTIST_ID,
+                MediaStore.Audio.Media.DURATION,
+                MediaStore.Audio.Media.DATA,
+                MediaStore.Audio.Media.TRACK,
+                MediaStore.Audio.Media.IS_MUSIC,
+                MediaStore.Audio.Media.SIZE,
+                MediaStore.Audio.Media.BOOKMARK};
+
+
+        return context.getContentResolver().query(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,projection,null,null,MediaStore.Audio.Media.TITLE);
+    }
 }

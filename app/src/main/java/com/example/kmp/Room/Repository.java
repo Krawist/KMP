@@ -8,8 +8,8 @@ import android.os.AsyncTask;
 import androidx.lifecycle.LiveData;
 
 import com.example.kmp.Helper.Helper;
-import com.example.kmp.Modeles.BaseMusique;
-import com.example.kmp.Modeles.JOIN_MUSIQUE_PLAYLIST;
+import com.example.kmp.Modeles.Album;
+import com.example.kmp.Modeles.Artiste;
 import com.example.kmp.Modeles.Musique;
 import com.example.kmp.Modeles.Favori;
 import com.example.kmp.Modeles.Playlist;
@@ -27,57 +27,47 @@ public class Repository {
 
 
     /** load request **/
-    public Cursor loadAllAlbums(Context context) {
-        return Helper.getAllAlbum(context);
+    public List<Album> loadAllAlbums(Context context) {
+        return Helper.matchCursorToAlbums(Helper.getAllAlbum(context));
     }
 
-    public Cursor loadAllArtists(Context context) {
+    public List<Artiste> loadAllArtists(Context context) {
 
-        return Helper.getAllArtist(context);
+        return Helper.matchCursorToArtists(Helper.getAllArtist(context));
     }
 
-    public Cursor loadPlaylists(Context context) {
-        return Helper.getPlaylist(context);
+    public List<Playlist> loadPlaylists(Context context) {
+        return Helper.matchCursorToPlaylist(Helper.getPlaylist(context));
+    }
+
+    public List<Musique> loadAllMusics(Context context){
+        return Helper.matchBasicCursorToMusics(Helper.getAllMusic(context));
+    }
+
+    public List<Musique> loadAllArtistSongs(Context context, int artisId){
+        return Helper.matchBasicCursorToMusics(Helper.getAllArtistSongs(context,artisId));
+    }
+
+    public List<Musique> loadAllPlaylistSongs(Context context, int idPlaylist){
+        return Helper.matchBasicCursorToMusics(Helper.getPLaysListSongs(context,idPlaylist));
+    }
+
+    public List<Musique> loadAllAlbumSongs(Context context, int albumId){
+        return Helper.matchBasicCursorToMusics(Helper.getAlbumMusic(context,albumId));
+    }
+
+    public List<Musique> loadFavoriteSong(Context context, List<Favori> favoriList) {
+        return Helper.matchBasicCursorToMusics(Helper.getFavoriteSongs(context, favoriList));
+    }
+
+    public LiveData<List<Favori>> getFavoriteSongsId(){
+        return dao.getAllFavoriteSongs();
     }
 
 
     /** insert request */
-    public void insertSong(BaseMusique musique){
-        new InsertSongAsyncTask(dao).execute(musique);
-    }
-
     public void insertFavori(Favori favori){
         new InsertFavorisyncTask(dao).execute(favori);
-    }
-
-    public void insertPlaylist(Playlist playlist){
-        new InsertPlaylistAsyncTask(dao).execute(playlist);
-    }
-
-    public void addSongToPlaylist(JOIN_MUSIQUE_PLAYLIST join_musique_playlist){
-        new InsertJoinMusiquePlaylist(dao).execute(join_musique_playlist);
-    }
-
-
-    /** get from local database request **/
-    public LiveData<List<Musique>> getAllAlbumSongs(int albumId){
-        return dao.getAllAlbumsSongs(albumId);
-    }
-
-    public LiveData<List<Musique>> getFavoriteMusique() {
-        return dao.getAllFavoriteSongs();
-    }
-
-    public LiveData<List<Musique>> getAllSongs(){
-        return dao.getAllSongs();
-    }
-
-    public LiveData<List<Musique>> getArtistSongs(int artisId){
-        return dao.getAllArtistesSongs(artisId);
-    }
-
-    public LiveData<List<Musique>> getUserPlayListSong(int idPlaylist){
-        return dao.getUserPlaylistSong(idPlaylist);
     }
 
     /** delete request*/
@@ -85,30 +75,8 @@ public class Repository {
         new DeleteFavoriAsyncTask(dao).execute(favori);
     }
 
-    public void deleteMusique(BaseMusique musique){
-        new DeleteMusiqueAsyncTask(dao).execute(musique);
-    }
-
-    public void removeSonToPlaylist(JOIN_MUSIQUE_PLAYLIST join_musique_playlist){
-        new DeleteJoinMusique(dao).execute(join_musique_playlist);
-    }
 
     /** AsynTask for insert operation**/
-    public class InsertSongAsyncTask extends AsyncTask<BaseMusique, Void, Void>{
-
-        KmpDao dao;
-        public InsertSongAsyncTask(KmpDao dao){
-            this.dao = dao;
-        }
-
-        @Override
-        protected Void doInBackground(BaseMusique... musiques) {
-            dao.insertMusique(musiques[0]);
-
-            return null;
-        }
-    }
-
     public class InsertFavorisyncTask extends AsyncTask<Favori, Void, Void>{
 
         KmpDao dao;
@@ -119,36 +87,6 @@ public class Repository {
         @Override
         protected Void doInBackground(Favori... favoris) {
             dao.insertFavori(favoris[0]);
-
-            return null;
-        }
-    }
-
-    public class InsertPlaylistAsyncTask extends AsyncTask<Playlist, Void, Void>{
-
-        KmpDao dao;
-        public InsertPlaylistAsyncTask(KmpDao dao){
-            this.dao = dao;
-        }
-
-        @Override
-        protected Void doInBackground(Playlist... playlists) {
-            dao.insertPlayslist(playlists[0]);
-
-            return null;
-        }
-    }
-
-    public class InsertJoinMusiquePlaylist extends AsyncTask<JOIN_MUSIQUE_PLAYLIST, Void, Void>{
-
-        KmpDao dao;
-        public InsertJoinMusiquePlaylist(KmpDao dao){
-            this.dao = dao;
-        }
-
-        @Override
-        protected Void doInBackground(JOIN_MUSIQUE_PLAYLIST... join_musique_playlists) {
-            dao.addSongToPlaylist(join_musique_playlists[0]);
 
             return null;
         }
@@ -168,36 +106,4 @@ public class Repository {
             return null;
         }
     }
-
-    public class DeleteMusiqueAsyncTask extends AsyncTask<BaseMusique, Void, Void>{
-
-        KmpDao dao;
-        public DeleteMusiqueAsyncTask(KmpDao dao){
-            this.dao = dao;
-        }
-
-        @Override
-        protected Void doInBackground(BaseMusique... musiques) {
-            dao.deleteMusique(musiques[0]);
-
-            return null;
-        }
-    }
-
-    public class DeleteJoinMusique extends AsyncTask<JOIN_MUSIQUE_PLAYLIST, Void, Void>{
-
-        KmpDao dao;
-        public DeleteJoinMusique(KmpDao dao){
-            this.dao = dao;
-        }
-
-        @Override
-        protected Void doInBackground(JOIN_MUSIQUE_PLAYLIST... musiques) {
-            dao.removeSongToPlaylist(musiques[0]);
-
-            return null;
-        }
-    }
-
-
 }

@@ -26,8 +26,11 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.media.MediaBrowserServiceCompat;
+import androidx.palette.graphics.Palette;
 
+import com.example.kmp.Activity.PlayingMusicActivity;
 import com.example.kmp.Modeles.Musique;
+import com.example.kmp.Modeles.ThemeColor;
 import com.example.kmp.Notification.PlayingNotification;
 import com.example.kmp.Notification.PlayingNotificationImpl;
 import com.example.kmp.Playback;
@@ -37,6 +40,7 @@ import com.example.kmp.Receiver.MediaButtonIntentReceiver;
 import com.example.kmp.ViewModel.KmpViewModel;
 import com.google.gson.Gson;
 
+import java.text.BreakIterator;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -272,7 +276,7 @@ public class PlayerService extends MediaBrowserServiceCompat implements AudioMan
 
     private void preparePlaying() {
         loadMusic();
-        //seetTo(model.getPlayingSongPosition().getValue());
+        seetTo(model.getPlayingSongPosition().getValue());
     }
 
     private void initNotification() {
@@ -410,7 +414,44 @@ public class PlayerService extends MediaBrowserServiceCompat implements AudioMan
                 .edit()
                 .putInt(PREFERENCES_LAST_PLAYED_SONG_POSITION_KEY, getPosition())
                 .apply();
+
+        Bitmap bitmap = BitmapFactory.decodeFile(getCurrentSong().getPochette());
+        if(bitmap!=null){
+            createPalette(bitmap);
+        }
+
     }
+
+    private void createPalette(Bitmap bitmap) {
+        Palette.from(bitmap).generate(new Palette.PaletteAsyncListener() {
+            @Override
+            public void onGenerated(@Nullable Palette palette) {
+                changeThemeColor(palette);
+            }
+        });
+    }
+
+    private void changeThemeColor(Palette palette) {
+        Palette.Swatch theme = palette.getDominantSwatch();
+        ThemeColor themeColor= null;
+        if(theme!=null){
+            themeColor = new ThemeColor();
+            themeColor.setBackgroundColor(theme.getRgb());
+            themeColor.setTextColor(theme.getBodyTextColor());
+            themeColor.setIconTintColor(theme.getTitleTextColor());
+        }else{
+            theme = palette.getVibrantSwatch();
+            if(theme!=null){
+                themeColor = new ThemeColor();
+                themeColor.setBackgroundColor(theme.getRgb());
+                themeColor.setTextColor(theme.getBodyTextColor());
+                themeColor.setIconTintColor(theme.getTitleTextColor());
+            }
+        }
+        if(getTheme()!=null)
+            model.getThemeColor().setValue(themeColor);
+    }
+
 
     public  void stop(){
         playback.stop();

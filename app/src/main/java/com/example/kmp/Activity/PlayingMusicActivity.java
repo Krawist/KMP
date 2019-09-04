@@ -9,6 +9,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.PorterDuff;
@@ -46,12 +47,14 @@ import com.example.kmp.Fragment.PlayingMusicPagerFragment;
 import com.example.kmp.Helper.Helper;
 import com.example.kmp.Modeles.Musique;
 import com.example.kmp.Modeles.Favori;
+import com.example.kmp.Modeles.ThemeColor;
 import com.example.kmp.R;
 import com.example.kmp.Service.PlayerService;
 import com.example.kmp.ViewModel.KmpViewModel;
 
 import java.util.List;
 
+import static com.example.kmp.Helper.Helper.TRANSITION_TIME;
 import static com.example.kmp.Service.PlayerService.ACTION_PLAY_PLAYLIST;
 
 /**
@@ -286,45 +289,6 @@ public class PlayingMusicActivity extends AppCompatActivity {
         if(bound)
             seekBar.setMax(service.getDuration());
 
-        Bitmap bitmap = BitmapFactory.decodeFile(musique.getPochette());
-
-        if(bitmap!=null){
-            createPalette(bitmap);
-        }
-
-
-    }
-
-    private void createPalette(Bitmap bitmap) {
-        Palette.from(bitmap).generate(new Palette.PaletteAsyncListener() {
-            @Override
-            public void onGenerated(@Nullable Palette palette) {
-                PlayingMusicActivity.this.palette = palette;
-                changeThemeColor();
-            }
-        });
-    }
-
-    private void changeThemeColor() {
-        Palette.Swatch vibrant = palette.getVibrantSwatch();
-        int transitionTime = 2000;
-        if(vibrant!=null){
-            titreMusique.setTextColor(vibrant.getRgb());
-            artisteMusique.setTextColor(vibrant.getRgb());
-            int previousColor = titreMusique.getHighlightColor();
-            ObjectAnimator animation = ObjectAnimator.ofInt(titreMusique, "textColor",previousColor,  vibrant.getRgb());
-            animation.setEvaluator(new ArgbEvaluator());
-            animation.setDuration(transitionTime);
-            animation.start();
-
-            animation = ObjectAnimator.ofInt(artisteMusique,"textColor", previousColor, vibrant.getRgb());
-            animation.setEvaluator(new ArgbEvaluator());
-            animation.setDuration(transitionTime);
-            animation.start();
-
-            seekBar.getProgressDrawable().setColorFilter(vibrant.getRgb(), PorterDuff.Mode.SRC_ATOP);
-
-        }
     }
 
     private void configureViewModel() {
@@ -333,6 +297,15 @@ public class PlayingMusicActivity extends AppCompatActivity {
             @Override
             public void onChanged(Musique musique) {
                 addDataToViews();
+            }
+        });
+
+        model.getThemeColor().observe(this, new Observer<ThemeColor>() {
+            @Override
+            public void onChanged(ThemeColor themeColor) {
+
+                updateUiColors(themeColor);
+
             }
         });
 
@@ -398,6 +371,21 @@ public class PlayingMusicActivity extends AppCompatActivity {
                 tempsEcoule.setText(Helper.formatDurationToString(progress));
             }
         });
+    }
+
+    private void updateUiColors(ThemeColor themeColor) {
+        int previousColor = titreMusique.getHighlightColor();
+        ObjectAnimator animation = ObjectAnimator.ofInt(titreMusique, "textColor",previousColor,  themeColor.getBackgroundColor());
+        animation.setEvaluator(new ArgbEvaluator());
+        animation.setDuration(TRANSITION_TIME);
+        animation.start();
+
+        animation = ObjectAnimator.ofInt(artisteMusique,"textColor", previousColor, themeColor.getBackgroundColor());
+        animation.setEvaluator(new ArgbEvaluator());
+        animation.setDuration(TRANSITION_TIME);
+        animation.start();
+
+        seekBar.getProgressDrawable().setColorFilter(themeColor.getBackgroundColor(), PorterDuff.Mode.SRC_ATOP);
     }
 
     private void initialiseView() {

@@ -20,9 +20,11 @@ import com.example.kmp.Modeles.Artiste;
 import com.example.kmp.R;
 import com.example.kmp.ViewModel.KmpViewModel;
 
+import java.util.List;
+
 public class ArtistFragment extends Fragment {
     private KmpViewModel model;
-    private Cursor cursor;
+    private List<Artiste> artistes;
     private ArtistAdapter adapter;
     private RecyclerView recyclerView;
 
@@ -40,7 +42,7 @@ public class ArtistFragment extends Fragment {
 
         configureRecyclerView();
 
-        if(cursor==null)
+        if(artistes ==null)
             configureModel();
 
         configureAdapter();
@@ -50,27 +52,27 @@ public class ArtistFragment extends Fragment {
 
     private void configureModel() {
         model = KmpViewModel.getInstance(getActivity().getApplication(), getContext());
-        model.getAllArtistes().observe(this, new Observer<Cursor>() {
+        model.getAllArtistes().observe(this, new Observer<List<Artiste>>() {
             @Override
-            public void onChanged(Cursor cursor) {
-                ArtistFragment.this.cursor = cursor;
+            public void onChanged(List<Artiste> cursor) {
+                ArtistFragment.this.artistes = cursor;
                 configureAdapter();
             }
         });
-        cursor = model.getAllArtistes().getValue();
+        artistes = model.getAllArtistes().getValue();
     }
 
     private void configureAdapter() {
-        if(cursor!=null){
+        if(artistes !=null){
             if(adapter!=null){
-                adapter.setCursor(cursor);
+                adapter.setList(artistes);
             }else{
                 adapter = new ArtistAdapter();
             }
 
             recyclerView.setAdapter(adapter);
         }else{
-            cursor = model.getAllArtistes().getValue();
+            artistes = model.getAllArtistes().getValue();
         }
     }
 
@@ -85,8 +87,7 @@ public class ArtistFragment extends Fragment {
 
         @Override
         public void onBindViewHolder(@NonNull ArtistViewHolder holder, int position) {
-            cursor.moveToPosition(position);
-            holder.bindData(Helper.matchCursorToSpecificArtist(cursor,position), position);
+            holder.bindData(artistes.get(position), position);
         }
 
         public ArtistAdapter(){
@@ -101,14 +102,14 @@ public class ArtistFragment extends Fragment {
 
         @Override
         public int getItemCount() {
-            if(cursor!=null)
-                return cursor.getCount();
+            if(artistes !=null)
+                return artistes.size();
             else
                 return 0;
         }
 
-        public void setCursor(Cursor cursor) {
-            ArtistFragment.this.cursor = cursor;
+        public void setList(List<Artiste> artistes) {
+            ArtistFragment.this.artistes = artistes;
             notifyDataSetChanged();
         }
 

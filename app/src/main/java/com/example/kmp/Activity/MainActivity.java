@@ -80,11 +80,7 @@ public class MainActivity extends AppCompatActivity {
         if(ActivityCompat.checkSelfPermission(this,Manifest.permission.READ_EXTERNAL_STORAGE)==PackageManager.PERMISSION_GRANTED){
             initialiseApp();
         }else{
-            if(ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.READ_EXTERNAL_STORAGE)){
-
-            }else{
-                ActivityCompat.requestPermissions(this,Helper.PERMISSION_ARRAY,READ_EXTERNAL_STORAGE_REQUEST_CODE);
-            }
+            startActivity(new Intent(this, PermissionActivity.class));
         }
     }
 
@@ -111,24 +107,16 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        if(requestCode== READ_EXTERNAL_STORAGE_REQUEST_CODE  ){
-            // If request is cancelled, the result arrays are empty.
-            if (grantResults.length > 0
-                    && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                initialiseApp();
-            }else{
-                finish();
-            }
-        }
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-    }
-
-    @Override
     protected void onStart() {
         super.onStart();
         Intent intent = new Intent(this, PlayerService.class);
         bindService(intent,connection, Context.BIND_AUTO_CREATE);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        model.refreshData(this);
     }
 
     @Override

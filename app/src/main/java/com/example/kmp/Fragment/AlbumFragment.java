@@ -1,7 +1,6 @@
 package com.example.kmp.Fragment;
 
 
-import android.database.Cursor;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -25,13 +24,15 @@ import com.example.kmp.Modeles.Album;
 import com.example.kmp.R;
 import com.example.kmp.ViewModel.KmpViewModel;
 
+import java.util.List;
+
 /**
  * A simple {@link Fragment} subclass.
  */
 public class AlbumFragment extends Fragment {
 
     private KmpViewModel model;
-    private Cursor cursor;
+    private List<Album> albums;
     private AlbumAdapter adapter;
     private RecyclerView recyclerView;
     public static final String ARTIST_ID = "artiste_a_afficher";
@@ -52,7 +53,7 @@ public class AlbumFragment extends Fragment {
 
         configureRecyclerView();
 
-        if(cursor==null)
+        if(albums==null)
             configureModel();
 
 
@@ -63,27 +64,27 @@ public class AlbumFragment extends Fragment {
 
     private void configureModel() {
         model = KmpViewModel.getInstance(getActivity().getApplication(), getContext());
-        model.getAllAlbums().observe(this, new Observer<Cursor>() {
+        model.getAllAlbums().observe(this, new Observer<List<Album>>() {
             @Override
-            public void onChanged(Cursor cursor) {
-                AlbumFragment.this.cursor = cursor;
+            public void onChanged(List<Album> albums) {
+                AlbumFragment.this.albums = albums;
                 configureAdapter();
             }
         });
-        cursor = model.getAllAlbums().getValue();
+        albums = model.getAllAlbums().getValue();
     }
 
     private void configureAdapter() {
-        if(cursor!=null){
+        if(albums!=null){
             if(adapter!=null){
-                adapter.setCursor(cursor);
+                adapter.setalbums(albums);
             }else{
                 adapter = new AlbumAdapter();
             }
 
             recyclerView.setAdapter(adapter);
         }else{
-            cursor = model.getAllAlbums().getValue();
+            albums = model.getAllAlbums().getValue();
         }
     }
 
@@ -101,20 +102,19 @@ public class AlbumFragment extends Fragment {
 
         @Override
         public void onBindViewHolder(@NonNull AlbumViewHolder holder, int position) {
-            cursor.moveToPosition(position);
-            holder.bindData(Helper.matchCursorToSpecificAlbum(cursor, position), position);
+            holder.bindData(albums.get(position), position);
         }
 
         @Override
         public int getItemCount() {
-            if(cursor!=null)
-                return cursor.getCount();
+            if(albums!=null)
+                return albums.size();
             else
                 return 0;
         }
 
-        public void setCursor(Cursor cursor) {
-            AlbumFragment.this.cursor = cursor;
+        public void setalbums(List<Album> albums) {
+            AlbumFragment.this.albums = albums;
             notifyDataSetChanged();
         }
     }

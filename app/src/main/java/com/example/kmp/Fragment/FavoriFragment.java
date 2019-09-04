@@ -1,8 +1,9 @@
 package com.example.kmp.Fragment;
 
+import android.animation.ArgbEvaluator;
+import android.animation.ObjectAnimator;
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -22,16 +23,16 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.example.kmp.Activity.MainActivity;
 import com.example.kmp.Helper.Helper;
-import com.example.kmp.Modeles.Favori;
 import com.example.kmp.Modeles.Musique;
 import com.example.kmp.Modeles.Playlist;
+import com.example.kmp.Modeles.ThemeColor;
 import com.example.kmp.R;
 import com.example.kmp.Service.PlayerService;
 import com.example.kmp.ViewModel.KmpViewModel;
 
 import java.util.List;
 
-import static com.example.kmp.Service.PlayerService.ACTION_PLAY_PLAYLIST;
+import static com.example.kmp.Helper.Helper.TRANSITION_TIME;
 
 public class FavoriFragment  extends Fragment {
 
@@ -132,6 +133,14 @@ public class FavoriFragment  extends Fragment {
                 configurePlaylistAdapter();
             }
         });
+
+        model.getThemeColor().observe(this, new Observer<ThemeColor>() {
+            @Override
+            public void onChanged(ThemeColor themeColor) {
+                if(favorisAdapter!=null)
+                    favorisAdapter.notifyDataSetChanged();
+            }
+        });
     }
 
     private void changeVisibility(View recyclerview, int visibilite1, View holderTextView, int visibilite2){
@@ -206,7 +215,7 @@ public class FavoriFragment  extends Fragment {
         public class FavorisViewHolder extends RecyclerView.ViewHolder{
 
             private final TextView titreMusique;
-            private final TextView artisteAlbum;
+            private final TextView artisteMusique;
             private final TextView dureeMusique;
             private final ImageView image;
 
@@ -214,14 +223,21 @@ public class FavoriFragment  extends Fragment {
             public FavorisViewHolder(View itemView){
                 super(itemView);
                 titreMusique = itemView.findViewById(R.id.textview_simple_item_title);
-                artisteAlbum = itemView.findViewById(R.id.textview_simple_item_second_text);
+                artisteMusique = itemView.findViewById(R.id.textview_simple_item_second_text);
                 dureeMusique = itemView.findViewById(R.id.textview_simple_item_third_text);
                 image = itemView.findViewById(R.id.imageview_simple_item_image);
             }
 
+
+            private void restoreDefaultColor(){
+                titreMusique.setTextColor(getResources().getColor(android.R.color.black));
+                artisteMusique.setTextColor(getResources().getColor(android.R.color.black));
+                itemView.setBackgroundColor(getResources().getColor(android.R.color.white));
+            }
+
             public void bindData(final Musique musique, final int position){
                 titreMusique.setText(musique.getTitreMusique().trim());
-                artisteAlbum.setText(musique.getNomArtiste().trim());
+                artisteMusique.setText(musique.getNomArtiste().trim());
                 dureeMusique.setText(Helper.formatDurationToString(musique.getDuration()));
 
                 Helper.loadCircleImage(getContext(),image, musique.getPochette(),35);
@@ -232,6 +248,29 @@ public class FavoriFragment  extends Fragment {
                         ((MainActivity)getContext()).startPlaylist(favoriteSong,musique, position, false);
                     }
                 });
+
+                if(model.getCurrentPLayingMusic().getValue()!=null){
+                    if(musique.getIdMusique()==model.getCurrentPLayingMusic().getValue().getIdMusique()){
+                        ThemeColor themeColor = model.getThemeColor().getValue();
+                        if(themeColor!=null){
+                            //itemView.setBackgroundColor(themeColor.getBackgroundColor());
+                            int previousColor = titreMusique.getHighlightColor();
+                            ObjectAnimator animation = ObjectAnimator.ofInt(titreMusique, "textColor",previousColor,  themeColor.getBackgroundColor());
+                            animation.setEvaluator(new ArgbEvaluator());
+                            animation.setDuration(TRANSITION_TIME);
+                            animation.start();
+
+                            animation = ObjectAnimator.ofInt(artisteMusique,"textColor", previousColor, themeColor.getBackgroundColor());
+                            animation.setEvaluator(new ArgbEvaluator());
+                            animation.setDuration(TRANSITION_TIME);
+                            animation.start();
+                        }else
+                            restoreDefaultColor();
+                    }else
+                        restoreDefaultColor();
+                }else{
+                    restoreDefaultColor();
+                }
 
                 Helper.builMusicItemContextMenu(getContext(),itemView,musique,position);
             }

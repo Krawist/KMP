@@ -7,11 +7,11 @@ import androidx.room.Room;
 import androidx.room.RoomDatabase;
 
 import com.example.kmp.Modeles.Favori;
-import com.example.kmp.Modeles.BaseMusique;
 import com.example.kmp.Modeles.JOIN_MUSIQUE_PLAYLIST;
+import com.example.kmp.Modeles.Musique;
 import com.example.kmp.Modeles.Playlist;
 
-@Database(entities = {BaseMusique.class, Playlist.class, Favori.class, JOIN_MUSIQUE_PLAYLIST.class}, version = 7)
+@Database(entities = {Musique.class, Playlist.class, Favori.class, JOIN_MUSIQUE_PLAYLIST.class}, version = 8)
 public abstract class KmpRoomDataBase extends RoomDatabase {
 
     private static volatile KmpRoomDataBase INSTANCE;

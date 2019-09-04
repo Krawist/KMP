@@ -1,6 +1,8 @@
 package com.example.kmp.Fragment;
 
 
+import android.animation.ArgbEvaluator;
+import android.animation.ObjectAnimator;
 import android.app.Dialog;
 import android.os.Bundle;
 
@@ -23,11 +25,14 @@ import com.example.kmp.Activity.MainActivity;
 import com.example.kmp.Helper.Helper;
 import com.example.kmp.Modeles.Favori;
 import com.example.kmp.Modeles.Musique;
+import com.example.kmp.Modeles.ThemeColor;
 import com.example.kmp.R;
 import com.example.kmp.ViewModel.KmpViewModel;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.List;
+
+import static com.example.kmp.Helper.Helper.TRANSITION_TIME;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -79,6 +84,14 @@ public class AllMusicFragment extends Fragment {
             }
         });
         musiqueList = model.getAllSongs().getValue();
+
+        model.getThemeColor().observe(this, new Observer<ThemeColor>() {
+            @Override
+            public void onChanged(ThemeColor themeColor) {
+                if(adapter!=null)
+                    adapter.notifyDataSetChanged();
+            }
+        });
     }
 
     private void configureAdapter() {
@@ -153,11 +166,41 @@ public class AllMusicFragment extends Fragment {
                 image = itemView.findViewById(R.id.imageview_simple_item_image);
             }
 
+            private void restoreDefaultColor(){
+                titreMusique.setTextColor(getResources().getColor(android.R.color.black));
+                artisteMusique.setTextColor(getResources().getColor(android.R.color.black));
+                itemView.setBackgroundColor(getResources().getColor(android.R.color.white));
+            }
+
             public void bindData(final Musique musique, final int position){
                 titreMusique.setText(musique.getTitreMusique().trim());
                 artisteMusique.setText(musique.getNomArtiste());
                 dureeMusique.setText(Helper.formatDurationToString(musique.getDuration()));
                 Helper.loadCircleImage(getContext(),image,musique.getPochette(),40);
+
+                if(model.getCurrentPLayingMusic().getValue()!=null){
+                    if(musique.getIdMusique()==model.getCurrentPLayingMusic().getValue().getIdMusique()){
+                        ThemeColor themeColor = model.getThemeColor().getValue();
+                        if(themeColor!=null){
+                            //itemView.setBackgroundColor(themeColor.getBackgroundColor());
+                            int previousColor = titreMusique.getHighlightColor();
+                            ObjectAnimator animation = ObjectAnimator.ofInt(titreMusique, "textColor",previousColor,  themeColor.getBackgroundColor());
+                            animation.setEvaluator(new ArgbEvaluator());
+                            animation.setDuration(TRANSITION_TIME);
+                            animation.start();
+
+                            animation = ObjectAnimator.ofInt(artisteMusique,"textColor", previousColor, themeColor.getBackgroundColor());
+                            animation.setEvaluator(new ArgbEvaluator());
+                            animation.setDuration(TRANSITION_TIME);
+                            animation.start();
+                        }else
+                            restoreDefaultColor();
+                    }else
+                        restoreDefaultColor();
+
+                }else{
+                    restoreDefaultColor();
+                }
 
 
                 itemView.setOnClickListener(new View.OnClickListener() {
