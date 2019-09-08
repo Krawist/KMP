@@ -57,13 +57,12 @@ public class MediaButtonIntentReceiver extends BroadcastReceiver {
                     }
                     break;
             }
-            releaseWakeLockIfHandlerIdle();
+            //releaseWakeLockIfHandlerIdle();
         }
     };
 
     @Override
     public void onReceive(final Context context, final Intent intent) {
-        if (DEBUG) Log.v(TAG, "Received intent: " + intent);
         if (handleIntent(context, intent) && isOrderedBroadcast()) {
             abortBroadcast();
         }
@@ -132,7 +131,7 @@ public class MediaButtonIntentReceiver extends BroadcastReceiver {
                                 mClickCounter = 0;
                             }
                             mLastClickTime = eventTime;
-                            acquireWakeLockAndSendMessage(context, msg, delay);
+                           // acquireWakeLockAndSendMessage(context, msg, delay);
                         } else {
                             startService(context, command);
                         }
@@ -151,33 +150,6 @@ public class MediaButtonIntentReceiver extends BroadcastReceiver {
             context.startForegroundService(intent);
         } else {
             context.startService(intent);
-        }
-    }
-
-    private static void acquireWakeLockAndSendMessage(Context context, Message msg, long delay) {
-        if (mWakeLock == null) {
-            Context appContext = context.getApplicationContext();
-            PowerManager pm = (PowerManager) appContext.getSystemService(Context.POWER_SERVICE);
-            //mWakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "Phonograph headset button");
-            mWakeLock.setReferenceCounted(false);
-        }
-        if (DEBUG) Log.v(TAG, "Acquiring wake lock and sending " + msg.what);
-        // Make sure we don't indefinitely hold the wake lock under any circumstances
-        mWakeLock.acquire(10000);
-
-        mHandler.sendMessageDelayed(msg, delay);
-    }
-
-    private static void releaseWakeLockIfHandlerIdle() {
-        if (mHandler.hasMessages(MSG_HEADSET_DOUBLE_CLICK_TIMEOUT)) {
-            if (DEBUG) Log.v(TAG, "Handler still has messages pending, not releasing wake lock");
-            return;
-        }
-
-        if (mWakeLock != null) {
-            if (DEBUG) Log.v(TAG, "Releasing wake lock");
-            mWakeLock.release();
-            mWakeLock = null;
         }
     }
 }

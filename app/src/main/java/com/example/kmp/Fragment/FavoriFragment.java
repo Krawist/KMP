@@ -65,10 +65,6 @@ public class FavoriFragment  extends Fragment {
 
         configureModel();
 
-        playlistAdapter = new PlaylistAdapter(this.playlists);
-
-        recyclerViewPlaylist.setAdapter(playlistAdapter);
-
         configureFavorisAdapter();
 
         configurePlaylistAdapter();
@@ -139,6 +135,7 @@ public class FavoriFragment  extends Fragment {
             public void onChanged(ThemeColor themeColor) {
                 if(favorisAdapter!=null)
                     favorisAdapter.notifyDataSetChanged();
+                    playlistAdapter.notifyDataSetChanged();
             }
         });
     }
@@ -159,6 +156,7 @@ public class FavoriFragment  extends Fragment {
             recyclerViewFavoris.setAdapter(favorisAdapter);
 
             layoutFavorisPresentation.setVisibility(View.VISIBLE);
+
         }else{
            layoutFavorisPresentation.setVisibility(View.GONE);
         }
@@ -172,6 +170,11 @@ public class FavoriFragment  extends Fragment {
                 playlistAdapter = new PlaylistAdapter(this.playlists);
             }
             recyclerViewPlaylist.setAdapter(playlistAdapter);
+
+            layoutPlaylistPresentation.setVisibility(View.VISIBLE);
+        }else{
+
+            layoutPlaylistPresentation.setVisibility(View.GONE);
         }
     }
 
@@ -295,14 +298,7 @@ public class FavoriFragment  extends Fragment {
 
         @Override
         public void onBindViewHolder(@NonNull PlaylistViewHolder holder, int position) {
-            if(position==0){
-                Playlist playlist = new Playlist();
-                playlist.setNomPlaylist(getString(R.string.melanger_tout));
-                holder.bindData(playlist,position);
-            }else{
-                holder.bindData(playlists.get(position-1), position-1);
-            }
-
+                holder.bindData(playlists.get(position), position);
         }
 
         public void setList(List<Playlist> playlists){
@@ -312,7 +308,7 @@ public class FavoriFragment  extends Fragment {
         @Override
         public int getItemCount() {
             if(playlists!=null)
-                return playlists.size()+1;
+                return playlists.size();
             else
                 return 0;
         }
@@ -341,7 +337,15 @@ public class FavoriFragment  extends Fragment {
                 playlistPlayAllButton.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
+                        List<Musique> list = model.getPlaylistSongs(getContext(), playlist).getValue();
+                        ((MainActivity)getContext()).startPlaylist(list,list.get(0),0,false);
+                    }
+                });
 
+                itemView.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        ((MainActivity)getContext()).openPlaylistDetail(playlist);
                     }
                 });
             }

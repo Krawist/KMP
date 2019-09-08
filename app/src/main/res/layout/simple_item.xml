@@ -11,6 +11,7 @@
         android:layout_weight="1"
         android:layout_height="wrap_content"
         android:orientation="vertical">
+
         <TextView
             android:singleLine="true"
             android:id="@+id/textview_simple_item_title"

@@ -49,14 +49,14 @@ public class Repository {
     }
 
     public List<Musique> loadAllPlaylistSongs(Context context, int idPlaylist){
-        return Helper.matchBasicCursorToMusics(Helper.getPLaysListSongs(context,idPlaylist));
+        return Helper.matchPlaylistCursorToMusics(Helper.getPLaysListSongs(context,idPlaylist));
     }
 
     public List<Musique> loadAllAlbumSongs(Context context, int albumId){
         return Helper.matchBasicCursorToMusics(Helper.getAlbumMusic(context,albumId));
     }
 
-    public List<Musique> loadFavoriteSong(Context context, List<Favori> favoriList) {
+    public List<Musique> loadFavoriteSong(Context context, List<Integer> favoriList) {
         return Helper.matchBasicCursorToMusics(Helper.getFavoriteSongs(context, favoriList));
     }
 

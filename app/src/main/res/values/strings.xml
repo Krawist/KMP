@@ -133,4 +133,7 @@
     <string name="la_liste_sera_joue_apres_celle_en_cours">cette liste sera joué juste après celle en cours</string>
     <string name="retirer_des_favoris">Retirer des favoris</string>
     <string name="ajouter_aux_favori">Ajouter aux favoris</string>
+    <string name="une_erreur_est_survenue">Une erreur est survenue</string>
+    <string name="partager_via">Partager via</string>
+    <string name="ajoute_a">Ajouté à</string>
 </resources>

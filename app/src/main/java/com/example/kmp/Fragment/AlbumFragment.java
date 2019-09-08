@@ -88,6 +88,15 @@ public class AlbumFragment extends Fragment {
         }
     }
 
+    @Override
+    public boolean onContextItemSelected(MenuItem item) {
+        if(getUserVisibleHint()){
+            Album album = albums.get(item.getGroupId());
+            Helper.handleMusicListContextItemSelected(getContext(),item,model.getAllAlbumMusics(getContext(), album).getValue());
+        }
+        return super.onContextItemSelected(item);
+    }
+
     private void configureRecyclerView() {
         recyclerView.setLayoutManager(new GridLayoutManager(getContext(),3));
     }
@@ -151,6 +160,7 @@ public class AlbumFragment extends Fragment {
                 }
             });
 
+            Helper.buildListMusicContextMenu(getContext(),itemView,position);
         }
     }
 

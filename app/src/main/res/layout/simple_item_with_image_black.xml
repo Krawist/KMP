@@ -5,7 +5,8 @@
     android:layout_height="wrap_content"
     android:foreground="?android:attr/selectableItemBackground"
     android:paddingRight="@dimen/fab_margin"
-    android:layout_marginLeft="@dimen/fab_margin">
+    android:layout_marginLeft="@dimen/fab_margin"
+    android:background="@android:color/transparent">
 
     <LinearLayout
         android:layout_width="match_parent"

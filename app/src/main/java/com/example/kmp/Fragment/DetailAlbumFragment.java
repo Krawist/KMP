@@ -32,6 +32,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import java.util.List;
@@ -50,6 +51,7 @@ public class DetailAlbumFragment extends Fragment {
     private TextView nombreSOng;
     private TextView nomArtiste;
     private ImageView image;
+    private LinearLayout playAllButton;
 
 /*    @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -180,7 +182,6 @@ public class DetailAlbumFragment extends Fragment {
         nombreSOng = view.findViewById(R.id.textview_activity_detail_nb_song_album);
         nomArtiste = view.findViewById(R.id.textview_activity_detail_artiste_album);
         image = view.findViewById(R.id.imageview_detail_album_image);
-
     }
 
     private void configureRecyclerView() {
@@ -190,7 +191,7 @@ public class DetailAlbumFragment extends Fragment {
 
     private void configureViewModel(){
         model = KmpViewModel.getInstance(getActivity().getApplication(), getContext());
-        model.getAllAlbumMusics(getContext(),album);
+        musiqueList = model.getAllAlbumMusics(getContext(),album).getValue();
         model.getAllAlbumMusics().observe(this, new Observer<List<Musique>>() {
             @Override
             public void onChanged(List<Musique> musiques) {

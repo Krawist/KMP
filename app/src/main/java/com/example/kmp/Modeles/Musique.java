@@ -79,10 +79,6 @@ public class Musique implements Serializable {
         return duration;
     }
 
-    public void setDuration(int duration) {
-        this.duration = duration;
-    }
-
     public String getPochette() {
         return pochette;
     }
@@ -94,6 +90,12 @@ public class Musique implements Serializable {
     public String getNomArtiste() {
         return nomArtiste;
     }
+
+    public void setDuration(int duration) {
+        this.duration = duration;
+    }
+
+
 
     public void setNomArtiste(String nomArtiste) {
         this.nomArtiste = nomArtiste;
@@ -137,5 +139,28 @@ public class Musique implements Serializable {
 
     public void setBookmark(int bookmark) {
         this.bookmark = bookmark;
+    }
+
+    @Override
+    public boolean equals(@Nullable Object obj) {
+        if(this==obj) {
+            return true;
+        }
+
+        if(obj==null || getClass()!=obj.getClass()) return false;
+
+        Musique musique = (Musique)obj;
+        if (idMusique != musique.getIdMusique() ||
+                track != musique.getTrack() ||
+                duration != musique.getDuration() ||
+                idAlbum != musique.getIdAlbum() ||
+                idArtiste != musique.getIdArtiste() ||
+                titreMusique != musique.getTitreMusique() ||
+                path != musique.getPath()) {
+
+            return false;
+        }
+
+        return true;
     }
 }

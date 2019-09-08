@@ -40,35 +40,18 @@ public class PlaybackImpl implements Playback, MediaPlayer.OnErrorListener, Medi
         }else if(service.isLastTrack()){
             if(service.getRepeatMode()==REPEAT_MODE_ALL|| service.getRepeatMode()==REPEAT_MODE_GROUP){
                 service.playNextSong();
-                if(service.getShuffleMode()){
-                    PlayerService.numberOfSongPlayedInShuffleMode++;
-                }
             }else{
-                if(service.getShuffleMode()){
-                    if(PlayerService.numberOfSongPlayedInShuffleMode>=service.getPlayingQueueSize()){
-                        stop();
-                        service.updatePosition(service.getNextPosition());
-                    }else{
-                        service.playNextSong();
-                        PlayerService.numberOfSongPlayedInShuffleMode++;
-                    }
-                }else{
                     stop();
                     service.updatePosition(service.getNextPosition());
                 }
-            }
         }else {
             service.playNextSong();
-            if(service.getShuffleMode()){
-                PlayerService.numberOfSongPlayedInShuffleMode++;
-            }
         }
-
     }
 
     @Override
     public boolean onError(MediaPlayer mp, int what, int extra) {
-        Toast.makeText(context,"Une erreur est survenue",Toast.LENGTH_SHORT).show();
+        Toast.makeText(context,service.getString(R.string.une_erreur_est_survenue),Toast.LENGTH_SHORT).show();
         if(service.getPosition()==service.getPlayingQueueSize()-1){
             return true;
         }else{

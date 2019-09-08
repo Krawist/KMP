@@ -42,6 +42,7 @@ import com.google.gson.Gson;
 
 import java.text.BreakIterator;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
@@ -104,7 +105,6 @@ public class PlayerService extends MediaBrowserServiceCompat implements AudioMan
     private int repeatMode;
     private Playback playback;
     private boolean pausedByTransientLossOfFocus;
-    public static int numberOfSongPlayedInShuffleMode = 0;
     private IntentFilter becomingNoisyReceiverIntentFilter = new IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY);
     KmpViewModel model;
     UpdateSeekBarPosition seekBarPositionRunnable = new UpdateSeekBarPosition();
@@ -261,15 +261,13 @@ public class PlayerService extends MediaBrowserServiceCompat implements AudioMan
     private void shuffleOriginalList() {
         List<Musique> list = new ArrayList<>(getOriginalPlayList());
         List<Musique> newPlayingQueue = new ArrayList<>();
-        newPlayingQueue.add(list.get(model.getPositionOfSongToPLay().getValue()));
+
+        newPlayingQueue.add(0,list.get(model.getPositionOfSongToPLay().getValue()));
         list.remove(model.getPositionOfSongToPLay().getValue());
-        numberOfSongPlayedInShuffleMode = 0;
-        Random rand = new Random();
-        while (!list.isEmpty()){
-            int n = rand.nextInt(list.size());
-            newPlayingQueue.add(list.get(n));
-            list.remove(n);
-        }
+        model.getPositionOfSongToPLay().setValue(0);
+
+        Collections.shuffle(list);
+        newPlayingQueue.addAll(list);
 
         model.getPlayingQueue().setValue(newPlayingQueue);
     }
@@ -387,9 +385,7 @@ public class PlayerService extends MediaBrowserServiceCompat implements AudioMan
         pausedByTransientLossOfFocus = false;
         playback.pause();
         model.getSongIsPlaying().setValue(false);
-
         mediaSession.setActive(false);
-
         updateNotification();
     }
 
@@ -415,9 +411,11 @@ public class PlayerService extends MediaBrowserServiceCompat implements AudioMan
                 .putInt(PREFERENCES_LAST_PLAYED_SONG_POSITION_KEY, getPosition())
                 .apply();
 
-        Bitmap bitmap = BitmapFactory.decodeFile(getCurrentSong().getPochette());
-        if(bitmap!=null){
-            createPalette(bitmap);
+        if(getCurrentSong().getPochette()!=null){
+            Bitmap bitmap = BitmapFactory.decodeFile(getCurrentSong().getPochette());
+            if(bitmap!=null){
+                createPalette(bitmap);
+            }
         }
 
     }
@@ -451,7 +449,6 @@ public class PlayerService extends MediaBrowserServiceCompat implements AudioMan
         if(getTheme()!=null)
             model.getThemeColor().setValue(themeColor);
     }
-
 
     public  void stop(){
         playback.stop();
@@ -502,6 +499,7 @@ public class PlayerService extends MediaBrowserServiceCompat implements AudioMan
     public void updatePosition(int newCurrentPosotion) {
         model.getPositionOfSongToPLay().setValue(newCurrentPosotion);
         model.getCurrentPLayingMusic().setValue(getPlayingQueue().get(newCurrentPosotion));
+        loadMusic();
     }
 
     private boolean requestFocus() {
@@ -528,9 +526,14 @@ public class PlayerService extends MediaBrowserServiceCompat implements AudioMan
             return;
         }
 
-        Bitmap bitmap = BitmapFactory.decodeFile(song.getPochette());
-        if(bitmap==null)
+        Bitmap bitmap = null;
+        if(song.getPochette()!=null){
+            bitmap = BitmapFactory.decodeFile(song.getPochette());
+            if(bitmap==null)
+                bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.logo);
+        }else{
             bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.logo);
+        }
 
         final MediaMetadataCompat.Builder metaData = new MediaMetadataCompat.Builder()
                 .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, song.getNomArtiste())
@@ -542,7 +545,7 @@ public class PlayerService extends MediaBrowserServiceCompat implements AudioMan
                 .putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, bitmap);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            //metaData.putLong(MediaMetadataCompat.METADATA_KEY_NUM_TRACKS, getPlayingQueueSize());
+            metaData.putLong(MediaMetadataCompat.METADATA_KEY_NUM_TRACKS, getPlayingQueueSize());
         }
         mediaSession.setMetadata(metaData.build());
     }
@@ -692,26 +695,33 @@ public class PlayerService extends MediaBrowserServiceCompat implements AudioMan
     public void addSong(int position, Musique song) {
         getPlayingQueue().add(position, song);
         getOriginalPlayList().add(song);
-        model.getPositionOfSongToPLay().setValue(getPreviousPosition());
-
+        notifyPlaylistChange();
         Toast.makeText(context,getString(R.string.le_song_sera_jouer_juste_apres),Toast.LENGTH_LONG).show();
+    }
+
+    private void notifyPlaylistChange() {
+        updateMediaSessionMetaData();
+        updatePlayListPreference();
     }
 
     public void addSong(Musique song) {
         getPlayingQueue().add(song);
         getOriginalPlayList().add(song);
+        notifyPlaylistChange();
         Toast.makeText(context,getString(R.string.le_song_sera_joue_apres_la_liste_en_cours),Toast.LENGTH_LONG).show();
     }
 
     public void addSongs(int position, List<Musique> songs) {
         getPlayingQueue().addAll(position, songs);
         getOriginalPlayList().addAll(position, songs);
+        notifyPlaylistChange();
         Toast.makeText(context,getString(R.string.la_liste_sera_joue_apres_le_song_en_cours),Toast.LENGTH_LONG).show();
     }
 
     public void addSongs(List<Musique> songs) {
         getPlayingQueue().addAll(songs);
         getOriginalPlayList().addAll(songs);
+        notifyPlaylistChange();
         Toast.makeText(context,getString(R.string.la_liste_sera_joue_apres_celle_en_cours),Toast.LENGTH_LONG).show();
     }
 
@@ -770,7 +780,6 @@ public class PlayerService extends MediaBrowserServiceCompat implements AudioMan
         //sendStickyBroadcast(intent);
     }
 
-
     public class LocalBinder extends Binder {
         @NonNull
         public PlayerService getService() {
@@ -782,7 +791,10 @@ public class PlayerService extends MediaBrowserServiceCompat implements AudioMan
         @Override
         public void run() {
             model.setPlayingSongPositionInMilli((int)getSongProgressMillis(), context);
-            seekbarHandler.postDelayed(this, SEEK_BAR_POSITION_REFRESH_DELAY);
+            if(isPlaying())
+                seekbarHandler.postDelayed(this, SEEK_BAR_POSITION_REFRESH_DELAY);
+            else
+                seekbarHandler.removeCallbacks(this);
         }
 
     }

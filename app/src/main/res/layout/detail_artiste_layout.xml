@@ -24,34 +24,7 @@
                 android:layout_height="wrap_content"
                 android:theme="@style/AppTheme.AppBarOverlay">
 
-                <androidx.appcompat.widget.Toolbar
-                    android:id="@+id/toolbar"
-                    android:layout_width="match_parent"
-                    android:layout_height="?attr/actionBarSize"
-                    app:popupTheme="@style/AppTheme.PopupOverlay"
-                    app:layout_collapseMode="pin">
-
-                    <ImageView
-                        android:id="@+id/imageview_backbutton"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:src="@drawable/ic_arrow_back_black_24dp"
-                        android:tint="@android:color/white"
-                        android:paddingTop="@dimen/size_8dp"
-                        android:paddingBottom="@dimen/size_8dp"
-                        android:paddingRight="@dimen/fab_margin"
-                        android:foreground="?android:attr/selectableItemBackground"/>
-
-                    <TextView
-                        android:id="@+id/toolbar_title"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:gravity="center_vertical"
-                        android:text="Nom Album"
-                        android:textAppearance="@style/TextAppearance.AppCompat.Medium"
-                        android:textColor="@color/primaryTextColor"/>
-
-                </androidx.appcompat.widget.Toolbar>
+                <include layout="@layout/toolbar" />
 
             </com.google.android.material.appbar.AppBarLayout>
 

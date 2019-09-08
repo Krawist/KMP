@@ -14,8 +14,8 @@
         <com.google.android.material.tabs.TabLayout
             android:id="@+id/tablayout_content_main"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:tabGravity="fill"
+            android:layout_height="30dp"
+            app:tabGravity="center"
             app:tabTextAppearance="@style/TextAppearance.AppCompat.Medium"
             app:tabMode="fixed"
             app:tabIndicatorColor="@android:color/white"
@@ -24,14 +24,9 @@
             android:background="@color/colorPrimary"
             app:tabTextColor="#ABFFFFFF" />
 
-        <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-            android:id="@+id/swiperrefreshlayout_acceuil"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
             <androidx.viewpager.widget.ViewPager
                 android:id="@+id/viewpager_content_main"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"/>
-        </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+                android:layout_height="match_parent" />
 
 </LinearLayout>

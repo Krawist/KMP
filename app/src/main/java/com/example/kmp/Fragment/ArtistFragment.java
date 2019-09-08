@@ -3,6 +3,7 @@ package com.example.kmp.Fragment;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
@@ -60,6 +61,15 @@ public class ArtistFragment extends Fragment {
             }
         });
         artistes = model.getAllArtistes().getValue();
+    }
+
+    @Override
+    public boolean onContextItemSelected(MenuItem item) {
+        if(getUserVisibleHint()){
+            Artiste artiste = artistes.get(item.getGroupId());
+            Helper.handleMusicListContextItemSelected(getContext(),item,model.getAllArtistMusics(getContext(), artiste).getValue());
+        }
+        return super.onContextItemSelected(item);
     }
 
     private void configureAdapter() {
@@ -151,6 +161,8 @@ public class ArtistFragment extends Fragment {
                         ((MainActivity)getContext()).openArtistDetail(artiste);
                     }
                 });
+
+                Helper.buildListMusicContextMenu(getContext(),itemView,position);
             }
         }
     }

@@ -3,7 +3,8 @@
     android:orientation="vertical" android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:paddingLeft="@dimen/fab_margin"
-    android:paddingTop="@dimen/fab_margin">
+    android:paddingTop="@dimen/fab_margin"
+    android:background="@android:color/white">
 
     <TextView
         android:id="@+id/textview_dialog_with_field_title"
@@ -22,7 +23,8 @@
         android:hint="Nom de la playlist"
         android:layout_marginRight="@dimen/fab_margin"
         android:typeface="normal"
-        android:inputType="textShortMessage"/>
+        android:inputType="textShortMessage"
+        android:theme="@style/PrimaryColorAccent"/>
 
     <LinearLayout
         android:layout_width="wrap_content"
@@ -35,7 +37,7 @@
             android:layout_height="wrap_content"
             android:text="@string/annuler"
             android:layout_toLeftOf="@id/button_dialog_positive_action"
-            android:backgroundTint="@android:color/transparent"/>
+            android:background="@android:color/transparent"/>
 
 
         <Button
@@ -43,7 +45,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="OK"
-            android:backgroundTint="@android:color/transparent" />
+            android:background="@android:color/transparent" />
 
 
     </LinearLayout>

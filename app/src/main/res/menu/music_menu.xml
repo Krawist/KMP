@@ -7,6 +7,12 @@
     <item android:id="@+id/action_music_add_to_playslist"
         android:title="@string/ajouter_a_la_playlist"/>
 
+    <item android:id="@+id/action_music_list_play_after"
+        android:title="@string/jouer_apres"/>
+
+    <item android:id="@+id/action_music_list_add_to_playslist"
+        android:title="@string/ajouter_a_la_playlist"/>
+
     <item android:id="@+id/action_music_ajouter_aux_favoris"
         android:title="@string/ajouter_aux_favori"/>
 

@@ -130,7 +130,7 @@ public class AllMusicFragment extends Fragment {
         @NonNull
         @Override
         public MusiqueViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-            return new MusiqueViewHolder(inflater.inflate(R.layout.simple_item_with_image_black,parent,false));
+            return new MusiqueViewHolder(inflater.inflate(R.layout.simple_item_with_image_white,parent,false));
         }
 
         @Override
@@ -174,7 +174,7 @@ public class AllMusicFragment extends Fragment {
 
             public void bindData(final Musique musique, final int position){
                 titreMusique.setText(musique.getTitreMusique().trim());
-                artisteMusique.setText(musique.getNomArtiste());
+                artisteMusique.setText(musique.getNomArtiste() + " * " + musique.getTitreAlbum());
                 dureeMusique.setText(Helper.formatDurationToString(musique.getDuration()));
                 Helper.loadCircleImage(getContext(),image,musique.getPochette(),40);
 

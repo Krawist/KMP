@@ -4,7 +4,10 @@
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:paddingTop="@dimen/fab_margin">
+    android:paddingTop="@dimen/fab_margin"
+    android:paddingRight="@dimen/fab_margin"
+    android:paddingLeft="@dimen/fab_margin"
+    android:background="@android:color/white">
 
     <TextView
         android:id="@+id/textview_dialog_list_title"
@@ -15,7 +18,8 @@
         android:layout_marginBottom="@dimen/fab_margin"
         android:paddingLeft="@dimen/fab_margin"
         android:paddingRight="@dimen/fab_margin"
-        android:maxLines="1"/>
+        android:maxLines="1"
+        android:textStyle="bold"/>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerview_dialog_list_"
@@ -36,7 +40,7 @@
             android:layout_height="wrap_content"
             android:text="@string/annuler"
             android:layout_toLeftOf="@id/button_dialog_positive_action"
-            android:backgroundTint="@android:color/transparent"/>
+            android:background="@android:color/transparent"/>
 
 
         <Button
@@ -44,7 +48,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="OK"
-            android:backgroundTint="@android:color/transparent" />
+            android:background="@android:color/transparent" />
 
 
     </LinearLayout>

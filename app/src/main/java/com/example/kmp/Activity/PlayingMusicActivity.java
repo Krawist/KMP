@@ -52,6 +52,7 @@ import com.example.kmp.R;
 import com.example.kmp.Service.PlayerService;
 import com.example.kmp.ViewModel.KmpViewModel;
 
+import java.util.Collections;
 import java.util.List;
 
 import static com.example.kmp.Helper.Helper.TRANSITION_TIME;
@@ -214,7 +215,7 @@ public class PlayingMusicActivity extends AppCompatActivity {
 
     private void addSongToPlayList(){
         Musique musique = model.getCurrentPLayingMusic().getValue();
-        //Helper.addSongToPlaylist(musique,this,model.loadPlaylists().getValue());
+        Helper.addSongToPlaylist(this,model.getPlaylists().getValue(),musique);
     }
 
     private void deleteMusic() {
@@ -273,11 +274,14 @@ public class PlayingMusicActivity extends AppCompatActivity {
         Musique musique = model.getCurrentPLayingMusic().getValue();
         artisteMusique.setText(musique.getNomArtiste());
         titreMusique.setText(musique.getTitreMusique());
+        //favorite.setVisibility(View.GONE);
 
-        if(musique.isLiked()){
-            favorite.setImageResource(R.drawable.ic_favorite_black_24dp);
-        }else{
-            favorite.setImageResource(R.drawable.ic_favorite_border_black_24dp);
+        if(model.getFavoriteSongs().getValue()!=null){
+            if(model.getFavoriteSongsId().getValue().contains(musique.getIdMusique())){
+                favorite.setImageResource(R.drawable.ic_favorite_black_24dp);
+            }else{
+                favorite.setImageResource(R.drawable.ic_favorite_border_black_24dp);
+            }
         }
 
         if(viewPager!=null){
@@ -475,15 +479,16 @@ public class PlayingMusicActivity extends AppCompatActivity {
             public void onClick(View v) {
                 Musique musique = model.getCurrentPLayingMusic().getValue();
                 musique.setLiked(!musique.isLiked());
-                if(musique.isLiked()) {
-                    favorite.setImageResource(R.drawable.ic_favorite_black_24dp);
-                    model.addToFavorite(new Favori(musique.getIdMusique()));
-                }
-                else {
-                    favorite.setImageResource(R.drawable.ic_favorite_border_black_24dp);
-                    model.removeFromFavorite(new Favori(musique.getIdMusique()));
-                }
 
+                if(model.getFavoriteSongsId().getValue()!=null){
+                    if(model.getFavoriteSongsId().getValue().contains(musique.getIdMusique())){
+                        favorite.setImageResource(R.drawable.ic_favorite_border_black_24dp);
+                        model.removeFromFavorite(PlayingMusicActivity.this,musique.getIdMusique());
+                    }else{
+                        favorite.setImageResource(R.drawable.ic_favorite_black_24dp);
+                        model.addToFavorite(PlayingMusicActivity.this,musique.getIdMusique());
+                    }
+                }
             }
         });
 

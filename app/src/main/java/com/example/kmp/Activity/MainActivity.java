@@ -14,10 +14,13 @@ import com.example.kmp.Fragment.ArtistDetailFragment;
 import com.example.kmp.Fragment.ArtistFragment;
 import com.example.kmp.Fragment.DetailAlbumFragment;
 import com.example.kmp.Fragment.FavoriFragment;
+import com.example.kmp.Fragment.PlaylistFragment;
 import com.example.kmp.Helper.Helper;
 import com.example.kmp.Modeles.Album;
 import com.example.kmp.Modeles.Artiste;
+import com.example.kmp.Modeles.Favori;
 import com.example.kmp.Modeles.Musique;
+import com.example.kmp.Modeles.Playlist;
 import com.example.kmp.R;
 import com.example.kmp.Service.PlayerService;
 import com.example.kmp.ViewModel.KmpViewModel;
@@ -67,7 +70,6 @@ public class MainActivity extends AppCompatActivity {
     private ProgressBar progressBar;
     private boolean isFragmentUnder = false;
     private Fragment fragmentUnder = null;
-    private SwipeRefreshLayout swipeRefreshLayout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -186,10 +188,10 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        model.getAllSongs().observe(this, new Observer<List<Musique>>() {
+        model.getFavoriteSongsId().observe(this, new Observer<List<Integer>>() {
             @Override
-            public void onChanged(List<Musique> musiques) {
-                swipeRefreshLayout.setRefreshing(false);
+            public void onChanged(List<Integer> favoris) {
+                model.refreshFavoriteSong(MainActivity.this);
             }
         });
     }
@@ -242,21 +244,11 @@ public class MainActivity extends AppCompatActivity {
     private void configureView() {
         viewPager.setAdapter(new ViewPagerAdapter(getSupportFragmentManager()));
         tabLayout.setupWithViewPager(viewPager);
-        viewPager.setCurrentItem(2);
     }
 
     private void initialiseViews() {
         tabLayout = findViewById(R.id.tablayout_content_main);
         viewPager = findViewById(R.id.viewpager_content_main);
-        swipeRefreshLayout = findViewById(R.id.swiperrefreshlayout_acceuil);
-        swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-            @Override
-            public void onRefresh() {
-                model.refreshData(MainActivity.this);
-                swipeRefreshLayout.setRefreshing(true);
-
-            }
-        });
         iniatiseBottomSheetView();
     }
 
@@ -280,8 +272,7 @@ public class MainActivity extends AppCompatActivity {
     public void playListAfterCurrent(List<Musique> musiques) {
         // ajoute la liste juste apres le song en cours en cours
         if(bound){
-            int next = service.getNextPosition();
-            model.getPlayingQueue().getValue().addAll(next,musiques);
+            service.addSongs(service.getNextPosition(),musiques);
         }
     }
 
@@ -309,7 +300,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void addListToPlaylist(List<Musique> musiques){
         if(bound){
-            model.getPlayingQueue().getValue().addAll(musiques);
+           service.addSongs(musiques);
         }
     }
 
@@ -395,6 +386,15 @@ public class MainActivity extends AppCompatActivity {
                 .commit();
 
         fragmentUnder = fragmentUnder;
+    }
+
+    public void openPlaylistDetail(Playlist playlist){
+        PlaylistFragment fragment = PlaylistFragment.getInstance(playlist);
+        getSupportFragmentManager()
+                .beginTransaction()
+                .replace(R.id.container_fragment,fragment)
+                .addToBackStack(null)
+                .commit();
     }
 
 }

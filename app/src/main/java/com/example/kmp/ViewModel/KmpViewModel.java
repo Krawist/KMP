@@ -18,6 +18,7 @@ import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
+import com.example.kmp.Activity.MainActivity;
 import com.example.kmp.Activity.PermissionActivity;
 import com.example.kmp.Helper.Helper;
 import com.example.kmp.Modeles.Album;
@@ -35,6 +36,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class KmpViewModel extends AndroidViewModel {
+
+    public static final String PREFERENCE_FAVORITE_KEY = "favoris";
 
     private Repository repository;
     private MutableLiveData<List<Musique>> allSongs;
@@ -55,7 +58,7 @@ public class KmpViewModel extends AndroidViewModel {
     private MutableLiveData<List<Musique>> playingQueue;
     private MutableLiveData<ThemeColor> themeColor;
 
-    private LiveData<List<Favori>> favoriteSongsId;
+    private MutableLiveData<List<Integer>> favoriteSongsId;
 
     private static KmpViewModel INSTANCE = null;
 
@@ -82,7 +85,7 @@ public class KmpViewModel extends AndroidViewModel {
         allArtistMusics = new MutableLiveData<>();
         allAlbumMusics = new MutableLiveData<>();
 
-        favoriteSongsId = repository.getFavoriteSongsId();
+        favoriteSongsId = new MutableLiveData<>();
 
         loopingMode.setValue(PreferenceManager.getDefaultSharedPreferences(context)
             .getInt(PlayerService.PREFERNCE_REPEAT_MODE_KEY, PlaybackStateCompat.REPEAT_MODE_NONE));
@@ -95,6 +98,10 @@ public class KmpViewModel extends AndroidViewModel {
         loadLastComponent(context);
 
         refreshData(context);
+    }
+
+    public LiveData<List<Integer>> getFavoriteSongsId() {
+        return favoriteSongsId;
     }
 
     public MutableLiveData<List<Playlist>> getPlaylists() {
@@ -118,6 +125,15 @@ public class KmpViewModel extends AndroidViewModel {
             }
         }
         listOfSongToPlay.setValue(list);
+
+        List<Integer> list2 = new ArrayList<>();
+        Integer[] array2 = gson.fromJson(sharedPreferences.getString(PREFERENCE_FAVORITE_KEY,null), Integer[].class);
+        if(array2!=null) {
+            for (int i = 0; i < array2.length; i++) {
+                list2.add(array2[i]);
+            }
+        }
+        favoriteSongsId.setValue(list2);
 
         list.clear();
         array = gson.fromJson(sharedPreferences.getString(PlayerService.PREFERENCES_LAST_ACTIVE_PLAYLIST_KEY, null), Musique[].class);
@@ -233,6 +249,18 @@ public class KmpViewModel extends AndroidViewModel {
         return playlistSongs;
     }
 
+    public MutableLiveData<List<Musique>> getPlaylistSongs(Context context, Playlist playlist) {
+        if(playlistSongs.getValue()!=null && !playlistSongs.getValue().isEmpty()){
+            if(playlistSongs.getValue().get(0).getIdAlbum()!=playlist.getIdPlaylist())
+                playlistSongs.setValue(repository.loadAllPlaylistSongs(context,playlist.getIdPlaylist()));
+        }else
+            playlistSongs.setValue(repository.loadAllPlaylistSongs(context,playlist.getIdPlaylist()));
+
+        new UpdateMusicAsyncTask(context,playlistSongs).execute();
+
+        return playlistSongs;
+    }
+
     public void setPlayingList(List<Musique> musiques, Context context){
         listOfSongToPlay.setValue(musiques);
     }
@@ -272,9 +300,9 @@ public class KmpViewModel extends AndroidViewModel {
         if(ContextCompat.checkSelfPermission(context,Manifest.permission.READ_EXTERNAL_STORAGE)== PackageManager.PERMISSION_GRANTED){
 
             allSongs.setValue(repository.loadAllMusics(context));
-            favoriteSongs.setValue(repository.loadFavoriteSong(context,favoriteSongsId.getValue()));
             allArtistes.setValue(repository.loadAllArtists(context));
             allAlbums.setValue(repository.loadAllAlbums(context));
+            playlists.setValue(repository.loadPlaylists(context));
 
             new UpdateMusicAsyncTask(context,allSongs).execute();
             new UpdateMusicAsyncTask(context,favoriteSongs).execute();
@@ -285,11 +313,46 @@ public class KmpViewModel extends AndroidViewModel {
         }
     }
 
-    public void addToFavorite(Favori favori){
-        repository.insertFavori(favori);
+    public void addToFavorite(Context context, Integer favori){
+        //repository.insertFavori(favori);
+        List<Integer> list= favoriteSongsId.getValue();
+        if(list==null)
+            list = new ArrayList<>();
+
+        list.add(new Integer(favori));
+        favoriteSongsId.setValue(list);
+
+        updateFavoriteSongId(context);
+
     }
 
-    public void removeFromFavorite(Favori favori){repository.removeFromFavori(favori);}
+    private void updateFavoriteSongId(Context context) {
+        int[] array = new int[favoriteSongsId.getValue().size()];
+        for(int i=0; i<favoriteSongsId.getValue().size(); i++){
+            array[i] = favoriteSongsId.getValue().get(i);
+        }
+
+        PreferenceManager.getDefaultSharedPreferences(context)
+                .edit()
+                .putString(PREFERENCE_FAVORITE_KEY,new Gson().toJson(array))
+                .apply();
+    }
+
+    public void removeFromFavorite(Context context, int favori){
+        //repository.removeFromFavori(favori);
+        List<Integer> list= favoriteSongsId.getValue();
+        if(list!=null)
+            list.remove(new Integer(favori));
+
+        favoriteSongsId.setValue(list);
+
+        updateFavoriteSongId(context);
+    }
+
+    public void refreshFavoriteSong(Context context) {
+        favoriteSongs.setValue(repository.loadFavoriteSong(context, favoriteSongsId.getValue()));
+        new UpdateMusicAsyncTask(context,favoriteSongs).execute();
+    }
 
     private class UpdateMusicAsyncTask extends AsyncTask<Void, Void, List<Musique>>{
 
@@ -312,6 +375,4 @@ public class KmpViewModel extends AndroidViewModel {
             mutableLiveData.setValue(musiques);
         }
     }
-
-
 }

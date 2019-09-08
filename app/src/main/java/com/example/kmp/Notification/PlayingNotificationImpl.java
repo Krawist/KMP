@@ -86,7 +86,7 @@ public class PlayingNotificationImpl extends PlayingNotification{
                         .setShowActionsInCompactView(0,1,2))
                 .setShowWhen(false)
                 .setContentTitle(musique.getTitreMusique())
-                .setContentText(musique.getTitreAlbum());
+                .setContentText(musique.getNomArtiste() + " * " +musique.getTitreAlbum());
 
         addActionsOnNotifications(builder);
 
@@ -111,18 +111,6 @@ public class PlayingNotificationImpl extends PlayingNotification{
                 .addAction(prevAction)
                 .addAction(playPauseAction)
                 .addAction(nextAction);
-    }
-
-    private RoundedBitmapDrawable getRoundedBitmapDrawable(Musique musique) {
-        Bitmap bitmap = BitmapFactory.decodeFile(musique.getPochette());
-        if(bitmap==null)
-            bitmap = BitmapFactory.decodeResource(service.getResources(),R.drawable.logo);
-
-        RoundedBitmapDrawable drawable = RoundedBitmapDrawableFactory.create(service.getResources(),
-                Bitmap.createScaledBitmap(bitmap,1,1,false));
-        drawable.setCircular(true);
-
-        return drawable;
     }
 
     private void linkButtons(RemoteViews notificationLayout, RemoteViews notificationBigContent){
@@ -157,7 +145,7 @@ public class PlayingNotificationImpl extends PlayingNotification{
 
     private Bitmap buildCircleBitmap(String imagePath, Resources res, int size){
         Bitmap bitmap = null;
-        if(!TextUtils.isEmpty(imagePath)){
+        if(imagePath!=null){
             bitmap = BitmapFactory.decodeFile(imagePath);
             if(bitmap==null){
                 bitmap = BitmapFactory.decodeResource(service.getResources(),R.drawable.logo);

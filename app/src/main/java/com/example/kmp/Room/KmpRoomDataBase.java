@@ -11,7 +11,7 @@ import com.example.kmp.Modeles.JOIN_MUSIQUE_PLAYLIST;
 import com.example.kmp.Modeles.Musique;
 import com.example.kmp.Modeles.Playlist;
 
-@Database(entities = {Musique.class, Playlist.class, Favori.class, JOIN_MUSIQUE_PLAYLIST.class}, version = 8)
+@Database(entities = {Musique.class, Playlist.class, Favori.class, JOIN_MUSIQUE_PLAYLIST.class}, version = 10)
 public abstract class KmpRoomDataBase extends RoomDatabase {
 
     private static volatile KmpRoomDataBase INSTANCE;

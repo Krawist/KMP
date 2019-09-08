@@ -18,7 +18,7 @@ public class PlayingMusicPagerFragment extends Fragment {
     Musique musique;
     private static final String IMAGE_KEY = "cle_image";
 
-    private PlayingMusicPagerFragment(){
+    public PlayingMusicPagerFragment(){
 
     }
 
