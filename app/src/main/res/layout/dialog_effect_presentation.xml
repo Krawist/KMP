@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <com.google.android.material.tabs.TabLayout
+        android:id="@+id/tablayout_dialog_effect_tablayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:tabIndicator="@color/colorAccent"
+        app:tabSelectedTextColor="@color/colorAccent"
+        app:tabTextColor="#23000000"
+        app:tabGravity="fill"
+        app:tabTextAppearance="@style/TextAppearance.AppCompat.Medium"
+        app:tabRippleColor="@color/colorAccent" />
+
+    <androidx.viewpager.widget.ViewPager
+        android:id="@+id/viewpager_dialog_effect_viewpager"
+        android:layout_width="match_parent"
+        android:layout_height="300dp" />
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/textview_confirmation_text">
+
+        <Button
+            android:id="@+id/button_dialog_negative_action"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/annuler"
+            android:layout_toLeftOf="@id/button_dialog_positive_action"
+            android:background="@android:color/transparent"
+            android:textStyle="bold"/>
+
+        <Button
+            android:id="@+id/button_dialog_positive_action"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/supprimer"
+            android:layout_alignParentRight="true"
+            android:background="@android:color/transparent"
+            android:textStyle="bold"/>
+
+    </RelativeLayout>
+
+</LinearLayout>

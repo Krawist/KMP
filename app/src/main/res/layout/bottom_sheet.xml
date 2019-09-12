@@ -50,16 +50,17 @@
                 android:id="@+id/textview_bottomsheet_music_title"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textAppearance="@style/TextAppearance.AppCompat.Medium"
                 android:textColor="@color/primaryTextColor"
                 android:text="Titre musique"
-                android:singleLine="true" />
+                android:singleLine="true"
+                android:textSize="@dimen/bottom_sheet_title_text_size"/>
             <TextView
                 android:id="@+id/textview_bottomsheet_music_artist"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:textColor="@color/primaryTextColor"
-                android:alpha=".8"
+                android:alpha=".7"
+                android:textSize="@dimen/bottom_sheet_sub_title_text_size"
                 android:text="Titre musique"
                 android:singleLine="true"/>
         </LinearLayout>

@@ -156,7 +156,7 @@ public class KmpViewModel extends AndroidViewModel {
 
         Intent intent = new Intent(context, PlayerService.class);
         intent.setAction(PlayerService.ACTION_LOAD);
-        ((Activity)context).startService(intent);
+        context.startService(intent);
     }
 
     public MutableLiveData<ThemeColor> getThemeColor() {
@@ -307,9 +307,8 @@ public class KmpViewModel extends AndroidViewModel {
             new UpdateMusicAsyncTask(context,allSongs).execute();
             new UpdateMusicAsyncTask(context,favoriteSongs).execute();
 
-
         }else{
-            ((Activity)context).startActivity(new Intent(context, PermissionActivity.class));
+            context.startActivity(new Intent(context, PermissionActivity.class));
         }
     }
 

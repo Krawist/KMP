@@ -4,4 +4,6 @@
     <dimen name="size_8dp">8dp</dimen>
     <dimen name="app_bar_height">180dp</dimen>
     <dimen name="text_margin">16dp</dimen>
+    <dimen name="bottom_sheet_title_text_size">14dp</dimen>
+    <dimen name="bottom_sheet_sub_title_text_size">12dp</dimen>
 </resources>

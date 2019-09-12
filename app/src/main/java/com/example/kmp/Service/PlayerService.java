@@ -404,20 +404,22 @@ public class PlayerService extends MediaBrowserServiceCompat implements AudioMan
     }
 
     public void loadMusic() {
-        pause();
-        playback.setDataSource(getCurrentSong().getPath());
-        PreferenceManager.getDefaultSharedPreferences(context)
-                .edit()
-                .putInt(PREFERENCES_LAST_PLAYED_SONG_POSITION_KEY, getPosition())
-                .apply();
+        Musique musique = getCurrentSong();
+        if(musique!=null){
+            pause();
+            playback.setDataSource(getCurrentSong().getPath());
+            PreferenceManager.getDefaultSharedPreferences(context)
+                    .edit()
+                    .putInt(PREFERENCES_LAST_PLAYED_SONG_POSITION_KEY, getPosition())
+                    .apply();
 
-        if(getCurrentSong().getPochette()!=null){
-            Bitmap bitmap = BitmapFactory.decodeFile(getCurrentSong().getPochette());
-            if(bitmap!=null){
-                createPalette(bitmap);
+            if(getCurrentSong().getPochette()!=null){
+                Bitmap bitmap = BitmapFactory.decodeFile(getCurrentSong().getPochette());
+                if(bitmap!=null){
+                    createPalette(bitmap);
+                }
             }
         }
-
     }
 
     private void createPalette(Bitmap bitmap) {

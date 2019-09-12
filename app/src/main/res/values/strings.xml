@@ -1,8 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">KMP</string>
     <string name="action_settings">Settings</string>
-
-    <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="favoris">Favoris</string>
     <string name="tout">Tout</string>
@@ -136,4 +135,6 @@
     <string name="une_erreur_est_survenue">Une erreur est survenue</string>
     <string name="partager_via">Partager via</string>
     <string name="ajoute_a">Ajouté à</string>
+    <string name="Personnaliser">Personnaliser</string>
+    <string name="ok">OK</string>
 </resources>

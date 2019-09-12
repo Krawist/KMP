@@ -95,7 +95,8 @@
                             android:gravity="center_vertical"
                             android:text="Nom Album"
                             android:textAppearance="@style/TextAppearance.AppCompat.Medium"
-                            android:textColor="@color/primaryTextColor"/>
+                            android:textColor="@color/primaryTextColor"
+                            android:singleLine="true"/>
 
                     </androidx.appcompat.widget.Toolbar>
 

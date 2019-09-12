@@ -118,7 +118,8 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        model.refreshData(this);
+        if(model!=null)
+            model.refreshData(this);
     }
 
     @Override

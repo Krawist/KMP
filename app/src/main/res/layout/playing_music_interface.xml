@@ -73,6 +73,7 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:padding="@dimen/fab_margin">
+
             <ImageButton
                 android:id="@+id/imagebutton_playing_music_favorite"
                 android:layout_width="wrap_content"
@@ -82,9 +83,9 @@
                 android:backgroundTint="@android:color/transparent"/>
 
             <LinearLayout
-                android:layout_width="match_parent"
+                android:layout_width="0dp"
+                android:layout_weight="1"
                 android:layout_height="wrap_content"
-                android:layout_marginRight="48dp"
                 android:orientation="vertical"
                 android:gravity="center_horizontal">
                 <TextView
@@ -109,6 +110,15 @@
                     android:singleLine="true"/>
             </LinearLayout>
 
+            <ImageButton
+                android:id="@+id/imagebutton_playing_music_editeffect"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:tint="#FFF"
+                android:alpha=".3"
+                android:src="@drawable/ic_tune_black_24dp"
+                android:rotation="90"
+                android:backgroundTint="@android:color/transparent"/>
 
         </LinearLayout>
 
