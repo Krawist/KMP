@@ -9,10 +9,13 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.media.AudioFocusRequest;
 import android.media.AudioManager;
+import android.media.MediaPlayer;
 import android.os.Binder;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.PowerManager;
@@ -21,11 +24,16 @@ import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
+import android.telephony.PhoneStateListener;
+import android.telephony.TelephonyManager;
+import android.text.TextUtils;
+import android.view.KeyEvent;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.media.MediaBrowserServiceCompat;
+import androidx.media.session.MediaButtonReceiver;
 import androidx.palette.graphics.Palette;
 
 import com.example.kmp.Activity.PlayingMusicActivity;
@@ -46,6 +54,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
+import static android.content.Intent.ACTION_MEDIA_BUTTON;
 import static android.support.v4.media.session.PlaybackStateCompat.REPEAT_MODE_ALL;
 import static android.support.v4.media.session.PlaybackStateCompat.REPEAT_MODE_GROUP;
 import static android.support.v4.media.session.PlaybackStateCompat.REPEAT_MODE_INVALID;
@@ -54,6 +63,9 @@ import static android.support.v4.media.session.PlaybackStateCompat.REPEAT_MODE_O
 
 
 public class PlayerService extends MediaBrowserServiceCompat implements AudioManager.OnAudioFocusChangeListener {
+
+    private static final String MY_MEDIA__ROOT_ID = "media_root_id";
+    private static final String EMPTY_MEDIA__ROOT_ID = "empty_root_id";
 
     public static final String PACKAGE_NAME = "com.example.kmp";
     public static final String MUSIC_PACKAGE_NAME = "com.android.music";
@@ -97,12 +109,30 @@ public class PlayerService extends MediaBrowserServiceCompat implements AudioMan
             }
         }
     };
+
+    PhoneStateListener phoneStateListener = new PhoneStateListener(){
+
+        @Override
+        public void onCallStateChanged(int state, String phoneNumber) {
+            switch (state){
+
+                case TelephonyManager.CALL_STATE_OFFHOOK:
+                case TelephonyManager.CALL_STATE_RINGING:
+                    pause();
+                    ongoingCall = true;
+                    break;
+
+                case TelephonyManager.CALL_STATE_IDLE:
+                    if(ongoingCall){
+                        ongoingCall = false;
+                        play();
+                    }
+                    break;
+
+            }
+        }
+    };
     private PowerManager.WakeLock wakeLock;
-    private int position;
-    private int nextPosition;
-    private List<Musique> playingQueue;
-    private List<Musique> originalPlayingQueue;
-    private int repeatMode;
     private Playback playback;
     private boolean pausedByTransientLossOfFocus;
     private IntentFilter becomingNoisyReceiverIntentFilter = new IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY);
@@ -111,6 +141,8 @@ public class PlayerService extends MediaBrowserServiceCompat implements AudioMan
     Handler seekbarHandler = new Handler();
     private static final int SEEK_BAR_POSITION_REFRESH_DELAY = 500;
     private PlayingNotification playingNotification;
+    private boolean ongoingCall = false;
+    private TelephonyManager telephonyManager;
 
     @Nullable
     @Override
@@ -141,7 +173,7 @@ public class PlayerService extends MediaBrowserServiceCompat implements AudioMan
 
 
             case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK:
-                playback.modifyVolume(0.5f);
+                playback.modifyVolume(0.2f);
                 break;
         }
     }
@@ -155,17 +187,8 @@ public class PlayerService extends MediaBrowserServiceCompat implements AudioMan
         wakeLock.setReferenceCounted(false);
 
         context = getApplicationContext();
-        stateBuilder = new PlaybackStateCompat.Builder()
-                .setActions(PlaybackStateCompat.ACTION_PLAY|
-                        PlaybackStateCompat.ACTION_PLAY_PAUSE |
-                        PlaybackStateCompat.ACTION_SKIP_TO_NEXT |
-                        PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS |
-                        PlaybackStateCompat.ACTION_PLAY_PAUSE |
-                        PlaybackStateCompat.ACTION_SEEK_TO);
 
         setupMediaSession();
-
-        sendBroadcast(new Intent(SERVICE_CREATE));
 
         configureViewModel();
 
@@ -209,7 +232,6 @@ public class PlayerService extends MediaBrowserServiceCompat implements AudioMan
             String action = intent.getAction();
             if(action!=null){
                 switch (action){
-
                     case ACTION_PLAY:
                         play();
                         break;
@@ -242,6 +264,14 @@ public class PlayerService extends MediaBrowserServiceCompat implements AudioMan
 
                     case ACTION_LOAD:
                         preparePlaying();
+                        break;
+
+                    case ACTION_QUIT:
+                        stop();
+                        break;
+
+                    case ACTION_MEDIA_BUTTON:
+                        MediaButtonIntentReceiver.handleIntent(this, intent);
                         break;
                 }
             }
@@ -300,19 +330,31 @@ public class PlayerService extends MediaBrowserServiceCompat implements AudioMan
     }
 
     private void setupMediaSession(){
-        ComponentName mediaButtonReceiverComponentName = new ComponentName(getApplicationContext(), MediaButtonIntentReceiver.class);
+/*        ComponentName mediaButtonReceiverComponentName = new ComponentName(getApplicationContext(), MediaButtonIntentReceiver.class);
 
         Intent mediaButtonIntent = new Intent(Intent.ACTION_MEDIA_BUTTON);
         mediaButtonIntent.setComponent(mediaButtonReceiverComponentName);
 
-        PendingIntent mediaButtonReceiverPendingIntent = PendingIntent.getBroadcast(getApplicationContext(), 0, mediaButtonIntent, 0);
+        PendingIntent mediaButtonReceiverPendingIntent = PendingIntent.getBroadcast(getApplicationContext(), 0, mediaButtonIntent, 0);*/
 
-        mediaSession = new MediaSessionCompat(context,MEDIA_SESSION_LOG_TAG,mediaButtonReceiverComponentName,mediaButtonReceiverPendingIntent);
+        mediaSession = new MediaSessionCompat(context,MEDIA_SESSION_LOG_TAG);
+        mediaSession.setFlags(MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS |
+                MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS);
+
+        stateBuilder = new PlaybackStateCompat.Builder()
+                .setActions(PlaybackStateCompat.ACTION_PLAY|
+                        PlaybackStateCompat.ACTION_PAUSE |
+                        PlaybackStateCompat.ACTION_SKIP_TO_NEXT |
+                        PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS |
+                        PlaybackStateCompat.ACTION_PLAY_PAUSE |
+                        PlaybackStateCompat.ACTION_SEEK_TO);
+
+        mediaSession.setPlaybackState(stateBuilder.build());
 
         mediaSession.setCallback(new MediaSessionCompat.Callback() {
             @Override
             public boolean onMediaButtonEvent(Intent mediaButtonEvent) {
-                return MediaButtonIntentReceiver.handleIntent(PlayerService.this, mediaButtonEvent);
+                return MediaButtonIntentReceiver.handleIntent(PlayerService.this,mediaButtonEvent);
             }
 
             @Override
@@ -345,12 +387,14 @@ public class PlayerService extends MediaBrowserServiceCompat implements AudioMan
                 seetTo(pos);
             }
 
+
+
         });
 
         mediaSession.setFlags(MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS
                 | MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS);
 
-        mediaSession.setMediaButtonReceiver(mediaButtonReceiverPendingIntent);
+        setSessionToken(mediaSession.getSessionToken());
     }
 
     public  void play() {
@@ -363,9 +407,7 @@ public class PlayerService extends MediaBrowserServiceCompat implements AudioMan
                 }
             }
 
-            updateMediaSessionMetaData();
-
-            updateMediaSessionPlaybackState();
+            updateMediaSession();
 
             model.getSongIsPlaying().setValue(true);
 
@@ -381,12 +423,22 @@ public class PlayerService extends MediaBrowserServiceCompat implements AudioMan
         }
     }
 
+    private void updateMediaSession() {
+
+        updateMediaSessionMetaData();
+
+        updateMediaSessionPlaybackState();
+    }
+
     public  void pause(){
-        pausedByTransientLossOfFocus = false;
-        playback.pause();
         model.getSongIsPlaying().setValue(false);
-        mediaSession.setActive(false);
+        pausedByTransientLossOfFocus = false;
+        registerReceiver(false);
+        playback.pause();
+        stopForeground(false);
+        updateMediaSession();
         updateNotification();
+
     }
 
     public  void playNextSong(){
@@ -453,9 +505,13 @@ public class PlayerService extends MediaBrowserServiceCompat implements AudioMan
     }
 
     public  void stop(){
-        playback.stop();
-        stopForeground(false);
+        abandonFocusOnAudioOutput();
         model.getSongIsPlaying().setValue(false);
+        registerReceiver(false);
+        playback.stop();
+        stopSelf();
+        stopForeground(false);
+        updateMediaSession();
         playback.release();
     }
 
@@ -467,9 +523,25 @@ public class PlayerService extends MediaBrowserServiceCompat implements AudioMan
                 registerReceiver(becomingNoisyReceiver,filter);
             }
         }else{
-            unregisterReceiver(becomingNoisyReceiver);
+            try {
+                unregisterReceiver(becomingNoisyReceiver);
+            }catch (IllegalArgumentException e){
+
+            }
         }
         becomingNoisyReceiverRegistered = register;
+        regiserListenerForCalls(register);
+    }
+
+    private void regiserListenerForCalls(boolean register) {
+        if(register){
+            getTelelphonyManager().listen(phoneStateListener, PhoneStateListener.LISTEN_CALL_STATE);
+        }else
+            getTelelphonyManager().listen(null, PhoneStateListener.LISTEN_CALL_STATE);
+    }
+
+    private TelephonyManager getTelelphonyManager() {
+        return (TelephonyManager)getSystemService(Context.TELEPHONY_SERVICE);
     }
 
     private void updatePlayListPreference() {
@@ -509,10 +581,14 @@ public class PlayerService extends MediaBrowserServiceCompat implements AudioMan
     }
 
     private void updateMediaSessionPlaybackState() {
+
+        int state = isPlaying()? PlaybackStateCompat.STATE_PLAYING: PlaybackStateCompat.STATE_PAUSED;
+        int position = getSongProgressMillis();
+
         mediaSession.setPlaybackState(
                 new PlaybackStateCompat.Builder()
-                        .setState(isPlaying() ? PlaybackStateCompat.STATE_PLAYING : PlaybackStateCompat.STATE_PAUSED,
-                                getPosition(), 1)
+                        .setState(state,
+                                position, isPlaying()?1:0)
                         .build());
     }
 
@@ -523,7 +599,7 @@ public class PlayerService extends MediaBrowserServiceCompat implements AudioMan
     private void updateMediaSessionMetaData() {
         final Musique song = getCurrentSong();
 
-        if (song.getIdMusique() == -1) {
+        if (song==null || (song!=null && song.getIdMusique() == -1)) {
             mediaSession.setMetadata(null);
             return;
         }
@@ -549,6 +625,7 @@ public class PlayerService extends MediaBrowserServiceCompat implements AudioMan
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             metaData.putLong(MediaMetadataCompat.METADATA_KEY_NUM_TRACKS, getPlayingQueueSize());
         }
+
         mediaSession.setMetadata(metaData.build());
     }
 
@@ -630,7 +707,7 @@ public class PlayerService extends MediaBrowserServiceCompat implements AudioMan
         return model.getPositionOfSongToPLay().getValue();
     }
 
-    private long getSongProgressMillis() {
+    private int getSongProgressMillis() {
         return playback.getCurrentPosition();
     }
 
@@ -702,7 +779,7 @@ public class PlayerService extends MediaBrowserServiceCompat implements AudioMan
     }
 
     private void notifyPlaylistChange() {
-        updateMediaSessionMetaData();
+       updateMediaSession();
         updatePlayListPreference();
     }
 

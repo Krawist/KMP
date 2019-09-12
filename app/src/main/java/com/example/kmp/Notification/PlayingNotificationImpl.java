@@ -14,13 +14,16 @@ import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
+import android.support.v4.media.session.PlaybackStateCompat;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.RemoteViews;
 
 import androidx.core.app.NotificationCompat;
+import androidx.core.content.ContextCompat;
 import androidx.core.graphics.drawable.RoundedBitmapDrawable;
 import androidx.core.graphics.drawable.RoundedBitmapDrawableFactory;
+import androidx.media.session.MediaButtonReceiver;
 
 import com.example.kmp.Modeles.Musique;
 import com.example.kmp.Activity.PlayingMusicActivity;
@@ -41,52 +44,25 @@ public class PlayingNotificationImpl extends PlayingNotification{
 
         isPlaying = service.isPlaying();
 
-        final RemoteViews notificationLayout = new RemoteViews(service.getPackageName(), R.layout.notification_layout);
-        final RemoteViews notigicationBigContent = new RemoteViews(service.getPackageName(), R.layout.notification_expand_layout);
-
-        linkButtons(notificationLayout, notigicationBigContent);
-
-        if(TextUtils.isEmpty(musique.getTitreMusique() )&& TextUtils.isEmpty(musique.getNomArtiste())){
-            notificationLayout.setViewVisibility(R.id.media_titles, INVISIBLE);
-        }else{
-            notificationLayout.setViewVisibility(R.id.media_titles, View.VISIBLE);
-            notigicationBigContent.setViewVisibility(R.id.media_titles, View.VISIBLE);
-
-            notificationLayout.setTextViewText(R.id.title, musique.getTitreMusique());
-            notificationLayout.setTextViewText(R.id.text, musique.getNomArtiste());
-
-            notigicationBigContent.setTextViewText(R.id.title, musique.getTitreMusique());
-            notigicationBigContent.setTextViewText(R.id.text, musique.getNomArtiste());
-        }
-
-        notificationLayout.setImageViewBitmap(R.id.image,buildCircleBitmap(musique.getPochette(),service.getResources(),0));
-
-        notificationLayout.setImageViewResource(R.id.action_play_pause, isPlaying?R.drawable.ic_pause_black_24dp:R.drawable.ic_play_arrow_black_24dp);
-        notigicationBigContent.setImageViewResource(R.id.action_play_pause, isPlaying?R.drawable.ic_pause_black_24dp:R.drawable.ic_play_arrow_black_24dp);
 
         Intent action = new Intent(service, PlayingMusicActivity.class);
         action.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
-
         final PendingIntent clicIntent = PendingIntent.getActivity(service,0,action,0);
-        final PendingIntent deleteIntent = buildPendingIntent(service, PlayerService.ACTION_QUIT, null);
-/*
-.setSmallIcon(isPlaying?R.drawable.ic_play_arrow_black_24dp:R.drawable.ic_pause_black_24dp)
-*/
 
         NotificationCompat.Builder builder= new NotificationCompat.Builder(service, NOTIFICATION_CHANNEL_ID)
-                .setSmallIcon(R.drawable.logo)
+                .setContentTitle(musique.getTitreMusique())
+                .setContentText(musique.getNomArtiste() + " * " +musique.getTitreAlbum())
                 .setLargeIcon(buildCircleBitmap(musique.getPochette(),service.getResources(),0))
                 .setContentIntent(clicIntent)
-                .setDeleteIntent(deleteIntent)
-                .setCategory(NotificationCompat.CATEGORY_SERVICE)
-                .setPriority(NotificationCompat.PRIORITY_MAX)
+                .setDeleteIntent(MediaButtonReceiver.buildMediaButtonPendingIntent(service,PlaybackStateCompat.ACTION_STOP))
                 .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+                .setSmallIcon(R.drawable.logo)
                 .setStyle(new androidx.media.app.NotificationCompat.DecoratedMediaCustomViewStyle()
                         .setMediaSession(service.getMediaSession().getSessionToken())
-                        .setShowActionsInCompactView(0,1,2))
-                .setShowWhen(false)
-                .setContentTitle(musique.getTitreMusique())
-                .setContentText(musique.getNomArtiste() + " * " +musique.getTitreAlbum());
+                        .setShowActionsInCompactView(0,1,2)
+                .setShowCancelButton(true)
+                .setCancelButtonIntent(MediaButtonReceiver.buildMediaButtonPendingIntent(service,PlaybackStateCompat.ACTION_STOP)))
+                .setShowWhen(false);
 
         addActionsOnNotifications(builder);
 
@@ -95,17 +71,34 @@ public class PlayingNotificationImpl extends PlayingNotification{
     }
 
     private void addActionsOnNotifications(NotificationCompat.Builder builder) {
-        PendingIntent pendingIntent;
-        final ComponentName serviceName = new ComponentName(service,PlayerService.class);
-        pendingIntent = buildPendingIntent(service, PlayerService.ACTION_REWIND, serviceName);
-        NotificationCompat.Action prevAction = new NotificationCompat.Action(R.drawable.ic_skip_previous_black_24dp,null,pendingIntent);
+        NotificationCompat.Action playPauseAction = new NotificationCompat.Action(
+                isPlaying?R.drawable.ic_pause_black_24dp:R.drawable.ic_play_arrow_black_24dp,
+                isPlaying?service.getString(R.string.play):service.getString(R.string.pause),
+                MediaButtonReceiver.buildMediaButtonPendingIntent(
+                        service,
+                        PlaybackStateCompat.ACTION_PLAY_PAUSE
+                )
+        );
 
-        pendingIntent = buildPendingIntent(service, PlayerService.ACTION_TOGGLE_PAUSE, serviceName);
-        NotificationCompat.Action playPauseAction = new NotificationCompat.Action(isPlaying?R.drawable.ic_pause_black_24dp:R.drawable.ic_play_arrow_black_24dp,null,pendingIntent);
+        NotificationCompat.Action prevAction = new NotificationCompat.Action(
+                R.drawable.ic_skip_previous_black_24dp,
+                service.getString(R.string.precedent),
+                MediaButtonReceiver.buildMediaButtonPendingIntent(
+                        service,
+                        PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS
+                )
 
+        );
 
-        pendingIntent = buildPendingIntent(service, PlayerService.ACTION_SKIP, serviceName);
-        NotificationCompat.Action nextAction = new NotificationCompat.Action(R.drawable.ic_skip_next_black_24dp,null,pendingIntent);
+        NotificationCompat.Action nextAction = new NotificationCompat.Action(
+                R.drawable.ic_skip_next_black_24dp,
+                service.getString(R.string.suivant),
+                MediaButtonReceiver.buildMediaButtonPendingIntent(
+                        service,
+                        PlaybackStateCompat.ACTION_SKIP_TO_NEXT
+                )
+
+        );
 
         builder
                 .addAction(prevAction)

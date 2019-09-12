@@ -114,7 +114,7 @@ public class MediaButtonIntentReceiver extends BroadcastReceiver {
 
                         // The service may or may not be running, but we need to send it
                         // a command.
-                        if (keycode == KeyEvent.KEYCODE_HEADSETHOOK || keycode == KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE) {
+                        /*if (keycode == KeyEvent.KEYCODE_HEADSETHOOK || keycode == KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE) {
                             if (eventTime - mLastClickTime >= DOUBLE_CLICK) {
                                 mClickCounter = 0;
                             }
@@ -135,8 +135,10 @@ public class MediaButtonIntentReceiver extends BroadcastReceiver {
                         } else {
                             startService(context, command);
                         }
-                        return true;
+                        return true;*/
                     }
+
+                    startService(context, command);
                 }
             }
         }

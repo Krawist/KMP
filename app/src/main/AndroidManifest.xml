@@ -19,6 +19,9 @@
             <intent-filter>
                 <action android:name="android.media.browse.MediaBrowserServiceCompat"/>
             </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.MEDIA_BUTTON" />
+            </intent-filter>
 
         </service>
 
@@ -39,9 +42,11 @@
         <activity android:name=".Activity.PermissionActivity"
             android:theme="@style/AppTheme.NoActionBar" />
 
-        <receiver android:name=".Receiver.MediaButtonIntentReceiver"
-            android:enabled="true"
-            android:exported="true"/>
+        <receiver android:name="androidx.media.session.MediaButtonReceiver">
+            <intent-filter>
+                <action android:name="android.intent.action.MEDIA_BUTTON" />
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>

@@ -137,4 +137,8 @@
     <string name="ajoute_a">Ajouté à</string>
     <string name="Personnaliser">Personnaliser</string>
     <string name="ok">OK</string>
+    <string name="play">play</string>
+    <string name="pause">pause</string>
+    <string name="precedent">précédent</string>
+    <string name="suivant">suivant</string>
 </resources>
