@@ -210,10 +210,6 @@ public class PlayerService extends MediaBrowserServiceCompat implements AudioMan
         mediaSession.setActive(false);
         quit();
         releaseResources();
-        wakeLock.release();
-        sendBroadcast(new Intent(SERVICE_DESTROYED));
-
-
     }
 
     public void setShuffle(){
@@ -271,7 +267,7 @@ public class PlayerService extends MediaBrowserServiceCompat implements AudioMan
                         break;
 
                     case ACTION_MEDIA_BUTTON:
-                        MediaButtonIntentReceiver.handleIntent(this, intent);
+                        MediaButtonReceiver.handleIntent(mediaSession, intent);
                         break;
                 }
             }
@@ -347,6 +343,9 @@ public class PlayerService extends MediaBrowserServiceCompat implements AudioMan
                         PlaybackStateCompat.ACTION_SKIP_TO_NEXT |
                         PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS |
                         PlaybackStateCompat.ACTION_PLAY_PAUSE |
+                        PlaybackStateCompat.ACTION_SET_SHUFFLE_MODE |
+                        PlaybackStateCompat.ACTION_SET_REPEAT_MODE |
+                        PlaybackStateCompat.ACTION_STOP |
                         PlaybackStateCompat.ACTION_SEEK_TO);
 
         mediaSession.setPlaybackState(stateBuilder.build());
@@ -354,7 +353,7 @@ public class PlayerService extends MediaBrowserServiceCompat implements AudioMan
         mediaSession.setCallback(new MediaSessionCompat.Callback() {
             @Override
             public boolean onMediaButtonEvent(Intent mediaButtonEvent) {
-                return MediaButtonIntentReceiver.handleIntent(PlayerService.this,mediaButtonEvent);
+                return super.onMediaButtonEvent(mediaButtonEvent);
             }
 
             @Override
@@ -383,18 +382,40 @@ public class PlayerService extends MediaBrowserServiceCompat implements AudioMan
             }
 
             @Override
+            public void onSetRepeatMode(int repeatMode) {
+                setRepeatMode(repeatMode);
+            }
+
+            @Override
+            public void onSetShuffleMode(int shuffleMode) {
+                setShuffle(shuffleMode);
+            }
+
+            @Override
             public void onSeekTo(long pos) {
                 seetTo(pos);
             }
-
-
-
         });
 
         mediaSession.setFlags(MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS
                 | MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS);
 
         setSessionToken(mediaSession.getSessionToken());
+    }
+
+    private void setShuffle(int shuffleMode) {
+        switch (shuffleMode){
+
+            case PlaybackStateCompat.SHUFFLE_MODE_ALL:
+            case PlaybackStateCompat.SHUFFLE_MODE_GROUP:
+                setShuffle();
+                break;
+
+            case PlaybackStateCompat.SHUFFLE_MODE_INVALID:
+            case PlaybackStateCompat.SHUFFLE_MODE_NONE:
+                model.setShuffleMode(this,false);
+                break;
+        }
     }
 
     public  void play() {
@@ -508,11 +529,10 @@ public class PlayerService extends MediaBrowserServiceCompat implements AudioMan
         abandonFocusOnAudioOutput();
         model.getSongIsPlaying().setValue(false);
         registerReceiver(false);
-        playback.stop();
         stopSelf();
         stopForeground(false);
         updateMediaSession();
-        playback.release();
+        //playback.release();
     }
 
     private void registerReceiver(boolean register){
@@ -582,14 +602,11 @@ public class PlayerService extends MediaBrowserServiceCompat implements AudioMan
 
     private void updateMediaSessionPlaybackState() {
 
-        int state = isPlaying()? PlaybackStateCompat.STATE_PLAYING: PlaybackStateCompat.STATE_PAUSED;
-        int position = getSongProgressMillis();
-
         mediaSession.setPlaybackState(
-                new PlaybackStateCompat.Builder()
-                        .setState(state,
-                                position, isPlaying()?1:0)
-                        .build());
+                stateBuilder
+                        .setState(isPlaying()? PlaybackStateCompat.STATE_PLAYING: PlaybackStateCompat.STATE_PAUSED, getSongProgressMillis(), isPlaying()?1:0)
+                        .build()
+        );
     }
 
     public List<Musique> getPlayingQueue(){
@@ -772,8 +789,17 @@ public class PlayerService extends MediaBrowserServiceCompat implements AudioMan
     }
 
     public void addSong(int position, Musique song) {
+
+        if(getPlayingQueueSize()==1){
+            getPlayingQueue().add(song);
+            getOriginalPlayList().add(song);
+            notifyPlaylistChange();
+            Toast.makeText(context,getString(R.string.le_song_sera_jouer_juste_apres),Toast.LENGTH_LONG).show();
+            return;
+        }
+
         getPlayingQueue().add(position, song);
-        getOriginalPlayList().add(song);
+        getOriginalPlayList().add(position,song);
         notifyPlaylistChange();
         Toast.makeText(context,getString(R.string.le_song_sera_jouer_juste_apres),Toast.LENGTH_LONG).show();
     }
@@ -791,6 +817,15 @@ public class PlayerService extends MediaBrowserServiceCompat implements AudioMan
     }
 
     public void addSongs(int position, List<Musique> songs) {
+
+        if(getPlayingQueueSize()==1){
+            getPlayingQueue().addAll(songs);
+            getOriginalPlayList().addAll(position, songs);
+            notifyPlaylistChange();
+            Toast.makeText(context,getString(R.string.la_liste_sera_joue_apres_le_song_en_cours),Toast.LENGTH_LONG).show();
+            return;
+        }
+
         getPlayingQueue().addAll(position, songs);
         getOriginalPlayList().addAll(position, songs);
         notifyPlaylistChange();

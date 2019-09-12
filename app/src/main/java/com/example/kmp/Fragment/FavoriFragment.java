@@ -85,7 +85,7 @@ public class FavoriFragment  extends Fragment {
 
     @Override
     public boolean onContextItemSelected(MenuItem item) {
-        if(getUserVisibleHint()){
+        if(getUserVisibleHint() && isVisible() && isResumed() && !((MainActivity)getContext()).isFragmentUnder){
             Helper.handleMusicContextItemSelected(getContext(),item,favoriteSong);
         }
         return super.onContextItemSelected(item);

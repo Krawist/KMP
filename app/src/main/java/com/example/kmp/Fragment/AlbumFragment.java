@@ -90,7 +90,7 @@ public class AlbumFragment extends Fragment {
 
     @Override
     public boolean onContextItemSelected(MenuItem item) {
-        if(getUserVisibleHint()){
+        if(getUserVisibleHint() && isVisible() && isResumed() && !((MainActivity)getContext()).isFragmentUnder){
             Album album = albums.get(item.getGroupId());
             Helper.handleMusicListContextItemSelected(getContext(),item,model.getAllAlbumMusics(getContext(), album).getValue());
         }

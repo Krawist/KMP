@@ -46,6 +46,7 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.List;
 import java.util.Random;
@@ -68,7 +69,7 @@ public class MainActivity extends AppCompatActivity {
     private PlayerService service;
     private boolean bound = false;
     private ProgressBar progressBar;
-    private boolean isFragmentUnder = false;
+    public boolean isFragmentUnder = false;
     private Fragment fragmentUnder = null;
 
     @Override
@@ -127,6 +128,13 @@ public class MainActivity extends AppCompatActivity {
         super.onStop();
         unbindService(connection);
         bound = false;
+    }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        if(isFragmentUnder)
+            isFragmentUnder = false;
     }
 
     private void configureToolbar() {
@@ -288,15 +296,29 @@ public class MainActivity extends AppCompatActivity {
         if(isShuffle){
             if(bound)
                 service.setShuffle();
-
             positionOfStart = new Random().nextInt(list.size());
         }
+
         model.setPlayingList(list,this);
         model.getPositionOfSongToPLay().setValue(positionOfStart);
-        model.getCurrentPLayingMusic().setValue(list.get(positionOfStart));
-        Intent intent = new Intent(this, PlayerService.class);
-        intent.setAction(ACTION_PLAY_PLAYLIST);
-        startService(intent);
+
+        if(list!=null){
+            model.getCurrentPLayingMusic().setValue(list.get(positionOfStart));
+        }else{
+            model.getCurrentPLayingMusic().setValue(null);
+        }
+
+        if(model.getCurrentPLayingMusic().getValue()==null ||
+            model.getPositionOfSongToPLay().getValue()==null ||
+            model.getListOfSongToPlay().getValue() == null){
+
+            Toast.makeText(this, R.string.une_erreur_est_survenue,Toast.LENGTH_SHORT).show();
+
+        }else {
+            Intent intent = new Intent(this, PlayerService.class);
+            intent.setAction(ACTION_PLAY_PLAYLIST);
+            startService(intent);
+        }
     }
 
     public void addListToPlaylist(List<Musique> musiques){
@@ -375,6 +397,7 @@ public class MainActivity extends AppCompatActivity {
                 .addToBackStack(null)
                 .commit();
 
+        isFragmentUnder = true;
         fragmentUnder = fragment;
     }
 
@@ -386,6 +409,7 @@ public class MainActivity extends AppCompatActivity {
                 .addToBackStack(null)
                 .commit();
 
+        isFragmentUnder = true;
         fragmentUnder = fragmentUnder;
     }
 
@@ -396,6 +420,7 @@ public class MainActivity extends AppCompatActivity {
                 .replace(R.id.container_fragment,fragment)
                 .addToBackStack(null)
                 .commit();
+        isFragmentUnder = false;
     }
 
 }

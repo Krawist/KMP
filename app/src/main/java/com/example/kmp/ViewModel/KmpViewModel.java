@@ -202,11 +202,7 @@ public class KmpViewModel extends AndroidViewModel {
 
     public LiveData<List<Musique>> getAllAlbumMusics(Context context, Album album) {
 
-        if(allAlbumMusics.getValue()!=null){
-            if(allAlbumMusics.getValue().get(0).getIdAlbum()!=album.getIdAlbum())
-                allAlbumMusics.setValue(repository.loadAllAlbumSongs(context,album.getIdAlbum()));
-        }else
-            allAlbumMusics.setValue(repository.loadAllAlbumSongs(context,album.getIdAlbum()));
+        allAlbumMusics.setValue(repository.loadAllAlbumSongs(context,album.getIdAlbum()));
 
         new UpdateMusicAsyncTask(context,allAlbumMusics).execute();
 

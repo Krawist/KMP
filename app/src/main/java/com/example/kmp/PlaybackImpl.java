@@ -73,6 +73,7 @@ public class PlaybackImpl implements Playback, MediaPlayer.OnErrorListener, Medi
 
             mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
             mediaPlayer.prepare();
+
         }catch (IOException e){
 
         }
@@ -107,14 +108,15 @@ public class PlaybackImpl implements Playback, MediaPlayer.OnErrorListener, Medi
         if(isPrepared){
             mediaPlayer.stop();
         }
-
         return true;
     }
 
     @Override
     public boolean release() {
-        mediaPlayer.release();
-
+        if(mediaPlayer!=null){
+            mediaPlayer.release();
+            isPrepared = false;
+        }
         return true;
     }
 

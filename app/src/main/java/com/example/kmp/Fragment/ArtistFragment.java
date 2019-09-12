@@ -65,7 +65,7 @@ public class ArtistFragment extends Fragment {
 
     @Override
     public boolean onContextItemSelected(MenuItem item) {
-        if(getUserVisibleHint()){
+        if(getUserVisibleHint() && isVisible() && isResumed() && !((MainActivity)getContext()).isFragmentUnder){
             Artiste artiste = artistes.get(item.getGroupId());
             Helper.handleMusicListContextItemSelected(getContext(),item,model.getAllArtistMusics(getContext(), artiste).getValue());
         }

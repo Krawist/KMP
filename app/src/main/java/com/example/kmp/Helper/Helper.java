@@ -228,7 +228,6 @@ public class Helper {
                 musique.setTrack(cursor.getInt(cursor.getColumnIndex(MediaStore.Audio.Playlists.Members.TRACK)));
                 musique.setTitreMusique(cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Playlists.Members.TITLE)));
                 musique.setBookmark(cursor.getInt(cursor.getColumnIndex(MediaStore.Audio.Playlists.Members.BOOKMARK)));
-
                 list.add(musique);
             }
             cursor.close();
@@ -637,6 +636,7 @@ public class Helper {
     }
 
     public static boolean handleMusicContextItemSelected(Context context, MenuItem item, List<Musique> musiqueList) {
+
         int position = item.getGroupId();
         switch (item.getItemId()) {
             case R.id.action_music_play_after:
