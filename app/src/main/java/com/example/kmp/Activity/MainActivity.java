@@ -1,6 +1,7 @@
 package com.example.kmp.Activity;
 
 import android.Manifest;
+import android.app.PendingIntent;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -21,6 +22,7 @@ import com.example.kmp.Modeles.Artiste;
 import com.example.kmp.Modeles.Favori;
 import com.example.kmp.Modeles.Musique;
 import com.example.kmp.Modeles.Playlist;
+import com.example.kmp.Playback;
 import com.example.kmp.R;
 import com.example.kmp.Service.PlayerService;
 import com.example.kmp.ViewModel.KmpViewModel;
@@ -35,6 +37,7 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentPagerAdapter;
 import androidx.lifecycle.Observer;
+import androidx.media.session.MediaButtonReceiver;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import androidx.viewpager.widget.ViewPager;
 
@@ -170,9 +173,10 @@ public class MainActivity extends AppCompatActivity {
         model.getLoopingMode().observe(this, new Observer<Integer>() {
             @Override
             public void onChanged(Integer integer) {
-                if(bound){
-                    //service.setLoopinfOne(integer== PlaybackStateCompat.REPEAT_MODE_NONE);
-                }
+                Intent intent = new Intent(MainActivity.this,PlayerService.class);
+                intent.setAction(PlayerService.ACTION_REPEAT);
+                intent.putExtra(PlayerService.REPEAT_MODE,integer);
+                startService(intent);
             }
         });
 
@@ -190,9 +194,11 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onChanged(Integer progress) {
                 if(model.getCurrentPLayingMusic().getValue()!=null){
-                    if(bound)
-                        progressBar.setMax(service.getDuration());
-                    progressBar.setProgress(progress);
+                    Musique musique = model.getCurrentPLayingMusic().getValue();
+                    if(musique!=null){
+                        progressBar.setMax(musique.getDuration());
+                        progressBar.setProgress(progress);
+                    }
                 }
             }
         });
@@ -217,31 +223,29 @@ public class MainActivity extends AppCompatActivity {
         next.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(bound){
-                    service.playNextSong();
-                }
+                Intent intent = new Intent(MainActivity.this,PlayerService.class);
+                intent.setAction(PlayerService.ACTION_SKIP_TO_NEXT);
+                startService(intent);
             }
         });
 
         previous.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(bound){
-                    service.playPreviousSong();
-                }
+                Intent intent = new Intent(MainActivity.this,PlayerService.class);
+                intent.setAction(PlayerService.ACTION_SKIP_TO_PREVIOUS);
+                startService(intent);
             }
         });
 
         play.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(bound){
-                    service.playPauseMusic();
-                }
+                Intent intent = new Intent(MainActivity.this,PlayerService.class);
+                intent.setAction(PlayerService.ACTION_TOGGLE_PAUSE);
+                startService(intent);
             }
         });
-
-
         ((RelativeLayout)findViewById(R.id.bottomsheet)).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

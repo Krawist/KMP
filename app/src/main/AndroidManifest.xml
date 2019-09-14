@@ -37,7 +37,8 @@
         </activity>
 
         <activity android:name=".Activity.PlayingMusicActivity"
-            android:theme="@style/AppTheme.NoActionBar" />
+            android:theme="@style/AppTheme.NoActionBar"
+            android:parentActivityName=".Activity.MainActivity"/>
 
         <activity android:name=".Activity.PermissionActivity"
             android:theme="@style/AppTheme.NoActionBar" />

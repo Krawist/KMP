@@ -234,6 +234,7 @@ public class PlayingMusicActivity extends AppCompatActivity {
         Button validateButton = dialog.findViewById(R.id.button_confirmation_validate);
         validateButton.setText(getString(R.string.supprimer));
         final Musique musique = model.getCurrentPLayingMusic().getValue();
+
         validateButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -290,8 +291,7 @@ public class PlayingMusicActivity extends AppCompatActivity {
 
         tempsTotal.setText(Helper.formatDurationToString(musique.getDuration()));
 
-        if(bound)
-            seekBar.setMax(service.getDuration());
+        seekBar.setMax(musique.getDuration());
 
     }
 
@@ -369,8 +369,7 @@ public class PlayingMusicActivity extends AppCompatActivity {
         model.getPlayingSongPosition().observe(this, new Observer<Integer>() {
             @Override
             public void onChanged(Integer progress) {
-                if(bound)
-                    seekBar.setMax(service.getDuration());
+
                 seekBar.setProgress(progress);
                 tempsEcoule.setText(Helper.formatDurationToString(progress));
             }
@@ -430,28 +429,27 @@ public class PlayingMusicActivity extends AppCompatActivity {
         playButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-               if(bound){
-                   model.getSongIsPlaying().setValue(model.getSongIsPlaying().getValue());
-                   service.playPauseMusic();
-               }
+                Intent intent = new Intent(PlayingMusicActivity.this,PlayerService.class);
+                intent.setAction(PlayerService.ACTION_TOGGLE_PAUSE);
+                startService(intent);
             }
         });
 
         nextButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(bound){
-                    service.playNextSong();
-                }
+                Intent intent = new Intent(PlayingMusicActivity.this,PlayerService.class);
+                intent.setAction(PlayerService.ACTION_SKIP_TO_NEXT);
+                startService(intent);
             }
         });
 
         previousButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(bound){
-                    service.playPreviousSong();
-                }
+                Intent intent = new Intent(PlayingMusicActivity.this,PlayerService.class);
+                intent.setAction(PlayerService.ACTION_SKIP_TO_PREVIOUS);
+                startService(intent);
             }
         });
 
@@ -528,9 +526,9 @@ public class PlayingMusicActivity extends AppCompatActivity {
                 public void onPageSelected(int position) {
                     model.getPositionOfSongToPLay().setValue(position);
                     model.getCurrentPLayingMusic().setValue(model.getPlayingQueue().getValue().get(position));
-                    if(bound){
-                        service.playSongAt(position);
-                    }
+                    Intent intent = new Intent(PlayingMusicActivity.this,PlayerService.class);
+                    intent.setAction(ACTION_PLAY_PLAYLIST);
+                    startService(intent);
 /*                    Intent intent = new Intent(PlayingMusicActivity.this, PlayerService.class);
                     intent.setAction(ACTION_PLAY_PLAYLIST);
                     startService(intent);*/
@@ -639,7 +637,7 @@ public class PlayingMusicActivity extends AppCompatActivity {
             image = itemView.findViewById(R.id.imageview_simple_item_image);
         }
 
-        public void bindData(Musique musique, final int position){
+        public void bindData(final Musique musique, final int position){
             titreMusique.setText(musique.getTitreMusique());
             artisteAlbum.setText(musique.getTitreAlbum());
             dureeMusique.setText(Helper.formatDurationToString(musique.getDuration()));
@@ -649,9 +647,11 @@ public class PlayingMusicActivity extends AppCompatActivity {
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                   if(bound){
-                       service.playSongAt(position);
-                   }
+                    model.getPositionOfSongToPLay().setValue(position);
+                    model.getCurrentPLayingMusic().setValue(musique);
+                    Intent intent = new Intent(PlayingMusicActivity.this,PlayerService.class);
+                    intent.setAction(ACTION_PLAY_PLAYLIST);
+                    startService(intent);
                 }
             });
         }

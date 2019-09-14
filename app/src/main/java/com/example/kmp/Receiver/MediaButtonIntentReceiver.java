@@ -8,7 +8,6 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.Message;
 import android.os.PowerManager;
-import android.util.Log;
 import android.view.KeyEvent;
 
 import com.example.kmp.Service.PlayerService;
@@ -41,10 +40,10 @@ public class MediaButtonIntentReceiver extends BroadcastReceiver {
                             command = PlayerService.ACTION_TOGGLE_PAUSE;
                             break;
                         case 2:
-                            command = PlayerService.ACTION_SKIP;
+                            command = PlayerService.ACTION_SKIP_TO_NEXT;
                             break;
                         case 3:
-                            command = PlayerService.ACTION_REWIND;
+                            command = PlayerService.ACTION_SKIP_TO_PREVIOUS;
                             break;
                         default:
                             command = null;
@@ -92,10 +91,10 @@ public class MediaButtonIntentReceiver extends BroadcastReceiver {
                     command = PlayerService.ACTION_TOGGLE_PAUSE;
                     break;
                 case KeyEvent.KEYCODE_MEDIA_NEXT:
-                    command = PlayerService.ACTION_SKIP;
+                    command = PlayerService.ACTION_SKIP_TO_NEXT;
                     break;
                 case KeyEvent.KEYCODE_MEDIA_PREVIOUS:
-                    command = PlayerService.ACTION_REWIND;
+                    command = PlayerService.ACTION_SKIP_TO_PREVIOUS;
                     break;
                 case KeyEvent.KEYCODE_MEDIA_PAUSE:
                     command = PlayerService.ACTION_PAUSE;

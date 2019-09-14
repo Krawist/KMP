@@ -1,21 +1,16 @@
 package com.example.kmp.Service;
 
-import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.media.AudioFocusRequest;
 import android.media.AudioManager;
-import android.media.MediaPlayer;
 import android.os.Binder;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.PowerManager;
@@ -26,8 +21,6 @@ import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
-import android.text.TextUtils;
-import android.view.KeyEvent;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -36,7 +29,6 @@ import androidx.media.MediaBrowserServiceCompat;
 import androidx.media.session.MediaButtonReceiver;
 import androidx.palette.graphics.Palette;
 
-import com.example.kmp.Activity.PlayingMusicActivity;
 import com.example.kmp.Modeles.Musique;
 import com.example.kmp.Modeles.ThemeColor;
 import com.example.kmp.Notification.PlayingNotification;
@@ -44,15 +36,12 @@ import com.example.kmp.Notification.PlayingNotificationImpl;
 import com.example.kmp.Playback;
 import com.example.kmp.PlaybackImpl;
 import com.example.kmp.R;
-import com.example.kmp.Receiver.MediaButtonIntentReceiver;
 import com.example.kmp.ViewModel.KmpViewModel;
 import com.google.gson.Gson;
 
-import java.text.BreakIterator;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Random;
 
 import static android.content.Intent.ACTION_MEDIA_BUTTON;
 import static android.support.v4.media.session.PlaybackStateCompat.REPEAT_MODE_ALL;
@@ -74,13 +63,21 @@ public class PlayerService extends MediaBrowserServiceCompat implements AudioMan
     public static final String ACTION_PLAY_PLAYLIST = PACKAGE_NAME + ".play.playlist";
     public static final String ACTION_PAUSE = PACKAGE_NAME + ".pause";
     public static final String ACTION_STOP = PACKAGE_NAME + ".stop";
-    public static final String ACTION_SKIP = PACKAGE_NAME + ".skip";
-    public static final String ACTION_REWIND = PACKAGE_NAME + ".rewind";
+    public static final String ACTION_SKIP_TO_NEXT = PACKAGE_NAME + ".skiptonext";
+    public static final String ACTION_SKIP_TO_PREVIOUS = PACKAGE_NAME + ".skiptoprevious";
+    public static final String ACTION_SHUFFLE_MODE = PACKAGE_NAME + ".shuffle";
+    public static final String ACTION_REPEAT = PACKAGE_NAME + ".repeat";
     public static final String ACTION_QUIT = PACKAGE_NAME + ".quitservice";
     public static final String ACTION_LOAD = PACKAGE_NAME + ".load";
+
+    public static final String SHUFFLE_MODE = "shufflemode";
+    public static final String REPEAT_MODE = "repeatmode";
+
     public static final String ACTION_PENDING_QUIT = PACKAGE_NAME + ".pendingquitservice";
     public static final String INTENT_EXTRA_PLAYLIST = PACKAGE_NAME + "intentextra.playlist";
     public static final String INTENT_EXTRA_SHUFFLE_MODE = PACKAGE_NAME + ".intentextra.shufflemode";
+
+
     public static final String SERVICE_CREATE = "com.example.kmp.KMP_SERVICE_CREATED";
     public static final String SERVICE_DESTROYED= "com.example.kmp.KMP_SERVICE_DESTROYED";
     public static final String PREFERENCES_LAST_PLAYED_SONG_POSITION_KEY = PACKAGE_NAME + "position_dernier_song";
@@ -250,11 +247,21 @@ public class PlayerService extends MediaBrowserServiceCompat implements AudioMan
                         pause();
                         break;
 
-                    case ACTION_SKIP:
+                    case ACTION_SHUFFLE_MODE:
+                        int shuffleMode = intent.getIntExtra(SHUFFLE_MODE,PlaybackStateCompat.SHUFFLE_MODE_NONE);
+                        setShuffle(shuffleMode);
+                        break;
+
+                    case ACTION_REPEAT:
+                        int repeatMode = intent.getIntExtra(REPEAT_MODE, REPEAT_MODE_NONE);
+                        setRepeatMode(repeatMode);
+                        break;
+
+                    case ACTION_SKIP_TO_NEXT:
                         playNextSong();
                         break;
 
-                    case ACTION_REWIND:
+                    case ACTION_SKIP_TO_PREVIOUS:
                         playPreviousSong();
                         break;
 
@@ -446,6 +453,8 @@ public class PlayerService extends MediaBrowserServiceCompat implements AudioMan
 
     private void updateMediaSession() {
 
+        mediaSession.setActive(isPlaying());
+
         updateMediaSessionMetaData();
 
         updateMediaSessionPlaybackState();
@@ -470,7 +479,6 @@ public class PlayerService extends MediaBrowserServiceCompat implements AudioMan
     }
 
     public  void playPreviousSong(){
-
         updatePosition(getPreviousPosition());
         loadMusic();
         play();
@@ -529,7 +537,7 @@ public class PlayerService extends MediaBrowserServiceCompat implements AudioMan
         abandonFocusOnAudioOutput();
         model.getSongIsPlaying().setValue(false);
         registerReceiver(false);
-        stopSelf();
+        //stopSelf();
         stopForeground(false);
         updateMediaSession();
         //playback.release();
@@ -614,36 +622,40 @@ public class PlayerService extends MediaBrowserServiceCompat implements AudioMan
     }
 
     private void updateMediaSessionMetaData() {
-        final Musique song = getCurrentSong();
+        if(isPlaying()){
+            final Musique song = getCurrentSong();
 
-        if (song==null || (song!=null && song.getIdMusique() == -1)) {
-            mediaSession.setMetadata(null);
-            return;
-        }
+            if (song==null || (song!=null && song.getIdMusique() == -1)) {
+                mediaSession.setMetadata(null);
+                return;
+            }
 
-        Bitmap bitmap = null;
-        if(song.getPochette()!=null){
-            bitmap = BitmapFactory.decodeFile(song.getPochette());
-            if(bitmap==null)
+            Bitmap bitmap = null;
+            if(song.getPochette()!=null){
+                bitmap = BitmapFactory.decodeFile(song.getPochette());
+                if(bitmap==null)
+                    bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.logo);
+            }else{
                 bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.logo);
+            }
+
+            final MediaMetadataCompat.Builder metaData = new MediaMetadataCompat.Builder()
+                    .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, song.getNomArtiste())
+                    .putString(MediaMetadataCompat.METADATA_KEY_ALBUM_ARTIST, song.getNomArtiste())
+                    .putString(MediaMetadataCompat.METADATA_KEY_ALBUM, song.getTitreAlbum())
+                    .putString(MediaMetadataCompat.METADATA_KEY_TITLE, song.getTitreMusique())
+                    .putLong(MediaMetadataCompat.METADATA_KEY_DURATION, song.getDuration())
+                    .putLong(MediaMetadataCompat.METADATA_KEY_TRACK_NUMBER, getPosition() + 1)
+                    .putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, bitmap);
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                metaData.putLong(MediaMetadataCompat.METADATA_KEY_NUM_TRACKS, getPlayingQueueSize());
+            }
+
+            mediaSession.setMetadata(metaData.build());
         }else{
-            bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.logo);
+            mediaSession.setMetadata(null);
         }
-
-        final MediaMetadataCompat.Builder metaData = new MediaMetadataCompat.Builder()
-                .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, song.getNomArtiste())
-                .putString(MediaMetadataCompat.METADATA_KEY_ALBUM_ARTIST, song.getNomArtiste())
-                .putString(MediaMetadataCompat.METADATA_KEY_ALBUM, song.getTitreAlbum())
-                .putString(MediaMetadataCompat.METADATA_KEY_TITLE, song.getTitreMusique())
-                .putLong(MediaMetadataCompat.METADATA_KEY_DURATION, song.getDuration())
-                .putLong(MediaMetadataCompat.METADATA_KEY_TRACK_NUMBER, getPosition() + 1)
-                .putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, bitmap);
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            metaData.putLong(MediaMetadataCompat.METADATA_KEY_NUM_TRACKS, getPlayingQueueSize());
-        }
-
-        mediaSession.setMetadata(metaData.build());
     }
 
     public int getPlayingQueueSize() {
