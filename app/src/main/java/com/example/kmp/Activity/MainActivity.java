@@ -26,6 +26,8 @@ import com.example.kmp.Playback;
 import com.example.kmp.R;
 import com.example.kmp.Service.PlayerService;
 import com.example.kmp.ViewModel.KmpViewModel;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.tabs.TabLayout;
 
 import androidx.annotation.NonNull;
@@ -59,7 +61,6 @@ import static com.example.kmp.Service.PlayerService.ACTION_PLAY_PLAYLIST;
 public class MainActivity extends AppCompatActivity {
 
     public static final int READ_EXTERNAL_STORAGE_REQUEST_CODE = 10;
-    private TabLayout tabLayout;
     private ViewPager viewPager;
     private KmpViewModel model;
     private ImageView image;
@@ -71,9 +72,12 @@ public class MainActivity extends AppCompatActivity {
 
     private PlayerService service;
     private boolean bound = false;
-    private ProgressBar progressBar;
+    //private ProgressBar progressBar;
     public boolean isFragmentUnder = false;
     private Fragment fragmentUnder = null;
+    private BottomNavigationView bottomNavigationView;
+    private RelativeLayout alwaysVisibleBottomSheet;
+    private BottomSheetBehavior bottomSheetBehavior;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -88,6 +92,7 @@ public class MainActivity extends AppCompatActivity {
         }else{
             startActivity(new Intent(this, PermissionActivity.class));
         }
+
     }
 
     @Override
@@ -135,9 +140,13 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        super.onBackPressed();
-        if(isFragmentUnder)
-            isFragmentUnder = false;
+        if(bottomSheetBehavior.getState()==BottomSheetBehavior.STATE_EXPANDED){
+            bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+        }else {
+            super.onBackPressed();
+            if(isFragmentUnder)
+                isFragmentUnder = false;
+        }
     }
 
     private void configureToolbar() {
@@ -183,10 +192,10 @@ public class MainActivity extends AppCompatActivity {
         model.getSongIsPlaying().observe(this, new Observer<Boolean>() {
             @Override
             public void onChanged(Boolean aBoolean) {
-                if(aBoolean)
+/*                if(aBoolean)
                     play.setImageResource(R.drawable.ic_pause_circle_outline_black_24dp);
                 else
-                    play.setImageResource(R.drawable.ic_play_circle_outline_black_40dp);
+                    play.setImageResource(R.drawable.ic_play_circle_outline_black_40dp);*/
             }
         });
 
@@ -196,8 +205,8 @@ public class MainActivity extends AppCompatActivity {
                 if(model.getCurrentPLayingMusic().getValue()!=null){
                     Musique musique = model.getCurrentPLayingMusic().getValue();
                     if(musique!=null){
-                        progressBar.setMax(musique.getDuration());
-                        progressBar.setProgress(progress);
+/*                        progressBar.setMax(musique.getDuration());
+                        progressBar.setProgress(progress);*/
                     }
                 }
             }
@@ -216,9 +225,9 @@ public class MainActivity extends AppCompatActivity {
         titre.setText(musique.getTitreMusique());
         artiste.setText(musique.getNomArtiste());
 
-        Helper.loadCircleImage(this,image, musique.getPochette(),50);
+        Helper.loadCircleImage(this,image, musique.getPochette(),25);
 
-        progressBar.setMax(musique.getDuration());
+        //progressBar.setMax(musique.getDuration());
 
         next.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -246,23 +255,111 @@ public class MainActivity extends AppCompatActivity {
                 startService(intent);
             }
         });
-        ((RelativeLayout)findViewById(R.id.bottomsheet)).setOnClickListener(new View.OnClickListener() {
+/*        ((RelativeLayout)findViewById(R.id.bottomsheet)).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
             startActivity(new Intent(MainActivity.this, PlayingMusicActivity.class));
             }
-        });
+        });*/
     }
 
     private void configureView() {
         viewPager.setAdapter(new ViewPagerAdapter(getSupportFragmentManager()));
-        tabLayout.setupWithViewPager(viewPager);
+        //tabLayout.setupWithViewPager(viewPager);
     }
 
     private void initialiseViews() {
-        tabLayout = findViewById(R.id.tablayout_content_main);
+        //tabLayout = findViewById(R.id.tablayout_content_main);
         viewPager = findViewById(R.id.viewpager_content_main);
+        bottomNavigationView = findViewById(R.id.nav_view);
+
+        addActionsOnViews();
+
         iniatiseBottomSheetView();
+    }
+
+    private void addActionsOnViews() {
+
+        viewPager.setOffscreenPageLimit(2);
+        viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+            @Override
+            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+
+            }
+
+            @Override
+            public void onPageSelected(int position) {
+                int resId = 0;
+                switch (position){
+                    case 0:
+                        resId = R.id.navigation_home;
+                        break;
+
+                    case 1:
+                        resId = R.id.navigation_all_songs;
+                        break;
+
+                    case 2:
+                        resId = R.id.navigation_albums;
+                        break;
+
+                    case 3:
+                        resId = R.id.navigation_artists;
+                        break;
+                }
+
+                if(resId!=0){
+                    bottomNavigationView.setSelectedItemId(resId);
+                }
+            }
+
+            @Override
+            public void onPageScrollStateChanged(int state) {
+
+            }
+        });
+
+        bottomNavigationView.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
+            @Override
+            public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
+                return openFragment(menuItem.getItemId());
+            }
+        });
+
+    }
+
+    private boolean openFragment(int itemId) {
+        int selectedItem = 0;
+        switch (itemId){
+
+            case R.id.navigation_home:
+                selectedItem = 0;
+                break;
+
+            case R.id.navigation_all_songs:
+                selectedItem = 1;
+                break;
+
+            case R.id.navigation_albums:
+                selectedItem = 2;
+                break;
+
+            case R.id.navigation_artists:
+                selectedItem = 3;
+                break;
+
+                default:
+                    selectedItem = -1;
+                    break;
+
+        }
+
+        if(selectedItem!=-1){
+            viewPager.setCurrentItem(selectedItem,true);
+            return true;
+        }
+
+        return false;
     }
 
     private void iniatiseBottomSheetView(){
@@ -272,7 +369,36 @@ public class MainActivity extends AppCompatActivity {
         previous = findViewById(R.id.imageview_bottomsheet_previous_button);
         play = findViewById(R.id.imageview_bottomsheet_play_button);
         next = findViewById(R.id.imageview_bottomsheet_next_button);
-        progressBar = findViewById(R.id.progressbar_bottom_sheet_progress);
+
+        alwaysVisibleBottomSheet = findViewById(R.id.bottom_sheet_always_visible_part);
+        bottomSheetBehavior = BottomSheetBehavior.from(findViewById(R.id.bottomsheet));
+
+        alwaysVisibleBottomSheet.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+            }
+        });
+
+        bottomSheetBehavior.setBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
+            @Override
+            public void onStateChanged(@NonNull View view, int state) {
+                if(state==BottomSheetBehavior.STATE_EXPANDED){
+                    bottomNavigationView.setVisibility(View.GONE);
+                    alwaysVisibleBottomSheet.setVisibility(View.GONE);
+                }else {
+                    bottomNavigationView.setVisibility(View.VISIBLE);
+                    alwaysVisibleBottomSheet.setVisibility(View.VISIBLE);
+                }
+            }
+
+            @Override
+            public void onSlide(@NonNull View view, float v) {
+
+            }
+        });
+
+        //progressBar = findViewById(R.id.progressbar_bottom_sheet_progress);
     }
 
     public void playAfterCurrent(Musique musique) {
@@ -397,7 +523,7 @@ public class MainActivity extends AppCompatActivity {
         DetailAlbumFragment fragment = DetailAlbumFragment.getInstance(album);
         getSupportFragmentManager()
                 .beginTransaction()
-                .replace(R.id.container_fragment,fragment)
+                .replace(R.id.container,fragment)
                 .addToBackStack(null)
                 .commit();
 
@@ -409,7 +535,7 @@ public class MainActivity extends AppCompatActivity {
         ArtistDetailFragment fragment = ArtistDetailFragment.getInstance(artiste);
         getSupportFragmentManager()
                 .beginTransaction()
-                .replace(R.id.container_fragment,fragment)
+                .replace(R.id.container,fragment)
                 .addToBackStack(null)
                 .commit();
 
@@ -421,10 +547,9 @@ public class MainActivity extends AppCompatActivity {
         PlaylistFragment fragment = PlaylistFragment.getInstance(playlist);
         getSupportFragmentManager()
                 .beginTransaction()
-                .replace(R.id.container_fragment,fragment)
+                .replace(R.id.container,fragment)
                 .addToBackStack(null)
                 .commit();
         isFragmentUnder = false;
     }
-
 }

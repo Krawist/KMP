@@ -6,12 +6,6 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="@color/colorPrimary"
-        android:alpha=".1"/>
-
     <LinearLayout
         android:layout_height="match_parent"
         android:layout_width="match_parent"
@@ -21,8 +15,7 @@
         <androidx.coordinatorlayout.widget.CoordinatorLayout
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="1"
-            android:id="@+id/container_fragment">
+            android:layout_weight="1">
 
             <com.google.android.material.appbar.AppBarLayout
                 android:layout_width="match_parent"
@@ -49,11 +42,23 @@
 
             </com.google.android.material.appbar.AppBarLayout>
 
-            <include layout="@layout/content_main" />
+            <androidx.viewpager.widget.ViewPager
+                android:id="@+id/viewpager_content_main"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"/>
+
+            <include layout="@layout/bottom_sheet"/>
 
         </androidx.coordinatorlayout.widget.CoordinatorLayout>
 
-        <include layout="@layout/bottom_sheet"/>
+        <com.google.android.material.bottomnavigation.BottomNavigationView
+            app:elevation="4dp"
+            android:elevation="4dp"
+            android:id="@+id/nav_view"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:background="@android:color/white"
+            app:menu="@menu/bottom_nav_menu" />
 
     </LinearLayout>
 

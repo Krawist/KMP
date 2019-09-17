@@ -115,8 +115,8 @@ public class PlayerService extends MediaBrowserServiceCompat implements AudioMan
 
                 case TelephonyManager.CALL_STATE_OFFHOOK:
                 case TelephonyManager.CALL_STATE_RINGING:
-                    pause();
                     ongoingCall = true;
+                    pause();
                     break;
 
                 case TelephonyManager.CALL_STATE_IDLE:
@@ -467,7 +467,9 @@ public class PlayerService extends MediaBrowserServiceCompat implements AudioMan
     public  void pause(){
         model.getSongIsPlaying().setValue(false);
         pausedByTransientLossOfFocus = false;
-        registerReceiver(false);
+        if(!ongoingCall){
+            registerReceiver(false);
+        }
         playback.pause();
         stopForeground(false);
         updateMediaSession();
@@ -573,7 +575,10 @@ public class PlayerService extends MediaBrowserServiceCompat implements AudioMan
     }
 
     private TelephonyManager getTelelphonyManager() {
-        return (TelephonyManager)getSystemService(Context.TELEPHONY_SERVICE);
+        if(telephonyManager==null)
+            telephonyManager =  (TelephonyManager)getSystemService(Context.TELEPHONY_SERVICE);
+
+        return telephonyManager;
     }
 
     private void updatePlayListPreference() {
