@@ -13,6 +13,7 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
@@ -338,7 +339,11 @@ public class FavoriFragment  extends Fragment {
                     @Override
                     public void onClick(View v) {
                         List<Musique> list = model.getPlaylistSongs(getContext(), playlist).getValue();
-                        ((MainActivity)getContext()).startPlaylist(list,list.get(0),0,false);
+                        if(list==null || (list!=null && list.isEmpty())){
+                            Toast.makeText(getContext(),getString(R.string.playlist_vide),Toast.LENGTH_SHORT).show();
+                        }else {
+                            ((MainActivity)getContext()).startPlaylist(list,list.get(0),0,false);
+                        }
                     }
                 });
 

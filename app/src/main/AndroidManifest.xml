@@ -12,17 +12,17 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
+
         <service
             android:name=".Service.PlayerService"
             android:enabled="true"
             android:exported="true">
             <intent-filter>
-                <action android:name="android.media.browse.MediaBrowserServiceCompat"/>
+                <action android:name="android.media.browse.MediaBrowserServiceCompat" />
             </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.MEDIA_BUTTON" />
             </intent-filter>
-
         </service>
 
         <activity
@@ -35,12 +35,12 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
-        <activity android:name=".Activity.PlayingMusicActivity"
-            android:theme="@style/AppTheme.NoActionBar"
-            android:parentActivityName=".Activity.MainActivity"/>
-
-        <activity android:name=".Activity.PermissionActivity"
+        <activity
+            android:name=".Activity.PlayingMusicActivity"
+            android:parentActivityName=".Activity.MainActivity"
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity
+            android:name=".Activity.PermissionActivity"
             android:theme="@style/AppTheme.NoActionBar" />
 
         <receiver android:name="androidx.media.session.MediaButtonReceiver">

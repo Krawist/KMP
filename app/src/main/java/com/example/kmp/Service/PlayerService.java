@@ -276,9 +276,13 @@ public class PlayerService extends MediaBrowserServiceCompat implements AudioMan
                     case ACTION_MEDIA_BUTTON:
                         MediaButtonReceiver.handleIntent(mediaSession, intent);
                         break;
+
+                        default:
+                            break;
                 }
             }
         }
+
         return START_NOT_STICKY;
     }
 

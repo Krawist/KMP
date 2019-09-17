@@ -13,6 +13,7 @@ import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.PorterDuff;
+import android.os.Build;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -107,6 +108,7 @@ public class PlayingMusicActivity extends AppCompatActivity {
         configureToolbar();
 
         addDataToViews();
+
     }
 
     @Override
@@ -115,6 +117,17 @@ public class PlayingMusicActivity extends AppCompatActivity {
         if(!bound){
             Intent intent = new Intent(this, PlayerService.class);
             bindService(intent,connection, Context.BIND_AUTO_CREATE);
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        if(Build.VERSION.SDK_INT >=16){
+            View decorView = getWindow().getDecorView();
+            int uiOptions = View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN ;
+            decorView.setSystemUiVisibility(uiOptions);
         }
     }
 
@@ -388,7 +401,7 @@ public class PlayingMusicActivity extends AppCompatActivity {
         animation.setDuration(TRANSITION_TIME);
         animation.start();
 
-        seekBar.getProgressDrawable().setColorFilter(themeColor.getBackgroundColor(), PorterDuff.Mode.SRC_ATOP);
+        //seekBar.getProgressDrawable().setColorFilter(themeColor.getBackgroundColor(), PorterDuff.Mode.SRC_ATOP);
     }
 
     private void initialiseView() {
@@ -434,6 +447,7 @@ public class PlayingMusicActivity extends AppCompatActivity {
                 startService(intent);
             }
         });
+
 
         nextButton.setOnClickListener(new View.OnClickListener() {
             @Override

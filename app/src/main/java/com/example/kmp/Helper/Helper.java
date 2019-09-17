@@ -3,6 +3,7 @@ package com.example.kmp.Helper;
 import android.Manifest;
 import android.app.Activity;
 import android.app.Dialog;
+import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
@@ -494,8 +495,8 @@ public class Helper {
                                     if(TextUtils.isEmpty(plalistName)){
                                         Toast.makeText(context,context.getString(R.string.donner_un_nom_a_la_playlist),Toast.LENGTH_LONG).show();
                                     }else{
-                                        //createAndAddSongToPlaylist(context, plalistName, musique);
                                         dialog1.dismiss();
+                                        createAndAddSongToPlaylist(context, plalistName, musique);
                                         Toast.makeText(context, context.getString(R.string.ajoute_a)+" "+plalistName, Toast.LENGTH_SHORT).show();
                                     }
                                 }
@@ -517,10 +518,8 @@ public class Helper {
                         @Override
                         public void onClick(View v) {
                             for(int i=0; i<musique.length;i++){
-                                addSongToPlaylist(context, musique[i], playlistList.get(position));
-                                //Toast.makeText(context,context.getString(R.string.ajoute_a) + " "+playlistList.get(position).getNomPlaylist(),Toast.LENGTH_SHORT).show();
+                                addSongToPlaylist(context, playlistList.get(position), musique[i]);
                             }
-
                             dialog.dismiss();
                         }
                     });
@@ -574,24 +573,50 @@ public class Helper {
                 });
     }
 
-    public static void createAndAddSongToPlaylist(Context context, String plalistName, Musique... musique) {
-        
+    public static void createAndAddSongToPlaylist(Context context, String plalistName, Musique... musiques) {
+        Uri uri = MediaStore.Audio.Playlists.EXTERNAL_CONTENT_URI;
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(MediaStore.Audio.Playlists.NAME,plalistName);
+
+        uri = context.getContentResolver().insert(uri,contentValues);
+        if(uri!=null){
+            Log.e("TAG",uri.toString());
+            int playlistId = (int)ContentUris.parseId(uri);
+            Playlist newPlaylist = new Playlist();
+            newPlaylist.setIdPlaylist(playlistId);
+            newPlaylist.setNomPlaylist(plalistName);
+
+            addSongToPlaylist(context,newPlaylist,musiques);
+        }
     }
 
-    public static void addSongToPlaylist(Context context, Musique musique, Playlist playlist){
+    public static void addSongToPlaylist(Context context, Playlist playlist, Musique... musiques){
 
-        ContentValues contentValues = new ContentValues();
-        contentValues.put(MediaStore.Audio.Playlists.Members.PLAYLIST_ID, playlist.getIdPlaylist());
-        contentValues.put(MediaStore.Audio.Playlists.Members.ALBUM_ID, musique.getIdAlbum());
-        contentValues.put(MediaStore.Audio.Playlists.Members.ALBUM, musique.getTitreAlbum());
-        contentValues.put(MediaStore.Audio.Playlists.Members.ARTIST, musique.getNomArtiste());
-        contentValues.put(MediaStore.Audio.Playlists.Members.ARTIST_ID, musique.getIdArtiste());
-        contentValues.put(MediaStore.Audio.Playlists.Members.TITLE, musique.getTitreMusique());
-        contentValues.put(MediaStore.Audio.Playlists.Members.AUDIO_ID, musique.getIdMusique());
+        String[] cols = new String[] {
+                "count ( * )"
+        };
+        Uri uri = MediaStore.Audio.Playlists.Members.getContentUri("external",playlist.getIdPlaylist());
+        Cursor cur = context.getContentResolver().query(uri,cols,null,null,null);
+        if(cur!=null){
+            cur.moveToFirst();
+            int base = cur.getInt(0);
+            cur.close();
 
-        //Uri uri = context.getContentResolver().insert(MediaStore.Audio.Playlists.Members.getContentUri(EXTERNAL_CONTENT_URI_VOLUME_NAME, playlist.getIdPlaylist()),contentValues);
+            ContentValues[] contentValues = new ContentValues[musiques.length];
 
-        //Log.e("TAG",uri.toString());
+            for(int i=0; i<musiques.length; i++){
+                contentValues[i].put(MediaStore.Audio.Playlists.Members.PLAY_ORDER, Integer.valueOf(base + musiques[i].getIdMusique()));
+                contentValues[i].put(MediaStore.Audio.Playlists.Members.AUDIO_ID, musiques[i].getIdMusique());
+            }
+
+            int size = context.getContentResolver().bulkInsert(uri,contentValues);
+
+            if(size>0){
+                Toast.makeText(context,context.getString(R.string.ajoute_a) + " "+playlist.getNomPlaylist(),Toast.LENGTH_SHORT).show();
+            }else{
+                Toast.makeText(context,context.getString(R.string.erreur_survenue_veuillez_reesayez),Toast.LENGTH_SHORT).show();
+            }
+        }
     }
 
     public static void builMusicItemContextMenu(final Context context, View itemView, final Musique musique, final int position){

@@ -4,7 +4,8 @@
     android:layout_height="match_parent"
     android:background="@android:color/black"
     android:clickable="true"
-    android:id="@+id/layout_playingmusic_root_layout">
+    android:id="@+id/layout_playingmusic_root_layout"
+    android:fitsSystemWindows="true">
 
     <RelativeLayout
         android:layout_width="match_parent"
@@ -126,11 +127,15 @@
             android:id="@+id/seekbar_playing_music_song_progress"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:tickMarkTint="@color/colorPrimary"
-            android:progressTint="@color/colorPrimary"
-            android:theme="@style/PrimaryColorAccent"
+            android:tickMarkTint="@android:color/white"
+            android:progressTint="@android:color/white"
+            android:thumbTint="@android:color/white"
+            android:progressBackgroundTint="#fff"
+            android:progress="50"
+            android:theme="@style/WhiteColorAccent"
             android:layout_marginLeft="@dimen/fab_margin"
-            android:layout_marginRight="@dimen/fab_margin"/>
+            android:layout_marginRight="@dimen/fab_margin"
+            />
 
         <RelativeLayout
             android:layout_width="match_parent"
@@ -188,7 +193,7 @@
                         android:id="@+id/imageview_playing_music_previous_button"
                         android:layout_width="45dp"
                         android:layout_height="45dp"
-                        android:src="@drawable/ic_skip_previous_black_24dp"
+                        android:src="@drawable/ic_fast_rewind_black_24dp"
                         android:padding="@dimen/size_4dp"
                         android:tint="@color/primaryTextColor"
                         android:layout_marginRight="@dimen/size_8dp"
@@ -208,7 +213,7 @@
                         android:id="@+id/imageview_playing_music_next_button"
                         android:layout_width="45dp"
                         android:layout_height="45dp"
-                        android:src="@drawable/ic_skip_next_black_24dp"
+                        android:src="@drawable/ic_fast_forward_black_24dp"
                         android:padding="@dimen/size_4dp"
                         android:tint="@color/primaryTextColor"
                         android:layout_marginRight="@dimen/size_8dp"
