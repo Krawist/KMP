@@ -1,12 +1,14 @@
 package com.example.kmp.Activity;
 
 import android.Manifest;
-import android.app.PendingIntent;
+import android.animation.AnimatorSet;
+import android.animation.ObjectAnimator;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
+import android.media.AudioManager;
 import android.os.Bundle;
 
 import com.example.kmp.Fragment.AlbumFragment;
@@ -15,42 +17,41 @@ import com.example.kmp.Fragment.ArtistDetailFragment;
 import com.example.kmp.Fragment.ArtistFragment;
 import com.example.kmp.Fragment.DetailAlbumFragment;
 import com.example.kmp.Fragment.FavoriFragment;
-import com.example.kmp.Fragment.PlaylistFragment;
+import com.example.kmp.Fragment.PlaylistDetailFragment;
 import com.example.kmp.Helper.Helper;
 import com.example.kmp.Modeles.Album;
 import com.example.kmp.Modeles.Artiste;
-import com.example.kmp.Modeles.Favori;
 import com.example.kmp.Modeles.Musique;
 import com.example.kmp.Modeles.Playlist;
-import com.example.kmp.Playback;
 import com.example.kmp.R;
 import com.example.kmp.Service.PlayerService;
 import com.example.kmp.ViewModel.KmpViewModel;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
-import com.google.android.material.bottomsheet.BottomSheetBehavior;
-import com.google.android.material.tabs.TabLayout;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
+import androidx.core.view.GestureDetectorCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentPagerAdapter;
 import androidx.lifecycle.Observer;
-import androidx.media.session.MediaButtonReceiver;
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import androidx.viewpager.widget.ViewPager;
 
 import android.os.IBinder;
+import android.util.DisplayMetrics;
+import android.util.Log;
+import android.view.GestureDetector;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.WindowManager;
+import android.view.animation.LinearInterpolator;
 import android.widget.ImageView;
-import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.List;
@@ -63,12 +64,6 @@ public class MainActivity extends AppCompatActivity {
     public static final int READ_EXTERNAL_STORAGE_REQUEST_CODE = 10;
     private ViewPager viewPager;
     private KmpViewModel model;
-    private ImageView image;
-    private TextView titre;
-    private TextView artiste;
-    private ImageView previous;
-    private ImageView play;
-    private ImageView next;
 
     private PlayerService service;
     private boolean bound = false;
@@ -76,8 +71,19 @@ public class MainActivity extends AppCompatActivity {
     public boolean isFragmentUnder = false;
     private Fragment fragmentUnder = null;
     private BottomNavigationView bottomNavigationView;
-    private RelativeLayout alwaysVisibleBottomSheet;
-    private BottomSheetBehavior bottomSheetBehavior;
+    private ImageView playingMusicImage;
+    private ImageView playingMusicButton;
+    private View floatingView;
+    int lastAction;
+    int initialX;
+    int initialY;
+    float initialTouchX;
+    float initialTouchY;
+    private RelativeLayout rootLayout;
+    private WindowManager.LayoutParams params;
+    private long lastTouchMoment = System.currentTimeMillis();
+    private boolean transitionFinished;
+    private GestureDetectorCompat gestureDetectorCompat;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -93,6 +99,13 @@ public class MainActivity extends AppCompatActivity {
             startActivity(new Intent(this, PermissionActivity.class));
         }
 
+        //configureSwipeListening();
+
+    }
+
+    private void configureSwipeListening() {
+        SwipeListener swipeListener = new SwipeListener();
+        gestureDetectorCompat = new GestureDetectorCompat(this,swipeListener);
     }
 
     @Override
@@ -129,6 +142,8 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
         if(model!=null)
             model.refreshData(this);
+
+        setVolumeControlStream(AudioManager.STREAM_MUSIC);
     }
 
     @Override
@@ -140,12 +155,10 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        if(bottomSheetBehavior.getState()==BottomSheetBehavior.STATE_EXPANDED){
-            bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
-        }else {
-            super.onBackPressed();
-            if(isFragmentUnder)
-                isFragmentUnder = false;
+        super.onBackPressed();
+        if(isFragmentUnder) {
+            isFragmentUnder = false;
+            bottomNavigationView.setVisibility(View.VISIBLE);
         }
     }
 
@@ -192,10 +205,10 @@ public class MainActivity extends AppCompatActivity {
         model.getSongIsPlaying().observe(this, new Observer<Boolean>() {
             @Override
             public void onChanged(Boolean aBoolean) {
-/*                if(aBoolean)
-                    play.setImageResource(R.drawable.ic_pause_circle_outline_black_24dp);
+                if(aBoolean)
+                    playingMusicButton.setImageResource(R.drawable.ic_pause_black_24dp);
                 else
-                    play.setImageResource(R.drawable.ic_play_circle_outline_black_40dp);*/
+                    playingMusicButton.setImageResource(R.drawable.ic_play_arrow_black_24dp);
             }
         });
 
@@ -221,46 +234,18 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void configureBottomSheet() {
-        Musique musique = model.getCurrentPLayingMusic().getValue();
-        titre.setText(musique.getTitreMusique());
-        artiste.setText(musique.getNomArtiste());
+       Musique musique = model.getCurrentPLayingMusic().getValue();
+       /* Bitmap bitmap = null;
+        if(TextUtils.isEmpty(musique.getPochette()) || musique.getPochette()==null)
+            bitmap = BitmapFactory.decodeResource(getResources(),R.drawable.logo);
+        else {
+            bitmap = BitmapFactory.decodeFile(musique.getPochette());
+            if (bitmap != null)
+                bitmap = BitmapFactory.decodeResource(getResources(),R.drawable.logo);
+        }
+        playingMusicImage.setImageBitmap(bitmap);*/
+       Helper.loadCircleImage(this,playingMusicImage,musique.getPochette(),56);
 
-        Helper.loadCircleImage(this,image, musique.getPochette(),25);
-
-        //progressBar.setMax(musique.getDuration());
-
-        next.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(MainActivity.this,PlayerService.class);
-                intent.setAction(PlayerService.ACTION_SKIP_TO_NEXT);
-                startService(intent);
-            }
-        });
-
-        previous.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(MainActivity.this,PlayerService.class);
-                intent.setAction(PlayerService.ACTION_SKIP_TO_PREVIOUS);
-                startService(intent);
-            }
-        });
-
-        play.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(MainActivity.this,PlayerService.class);
-                intent.setAction(PlayerService.ACTION_TOGGLE_PAUSE);
-                startService(intent);
-            }
-        });
-/*        ((RelativeLayout)findViewById(R.id.bottomsheet)).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-            startActivity(new Intent(MainActivity.this, PlayingMusicActivity.class));
-            }
-        });*/
     }
 
     private void configureView() {
@@ -272,6 +257,11 @@ public class MainActivity extends AppCompatActivity {
         //tabLayout = findViewById(R.id.tablayout_content_main);
         viewPager = findViewById(R.id.viewpager_content_main);
         bottomNavigationView = findViewById(R.id.nav_view);
+
+        playingMusicImage = findViewById(R.id.imageview_playing_music_image);
+        playingMusicButton = findViewById(R.id.imageview_playbutton);
+        floatingView = findViewById(R.id.floatingview);
+        rootLayout = findViewById(R.id.rootlayout);
 
         addActionsOnViews();
 
@@ -319,6 +309,16 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+
+        floatingView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MainActivity.this, PlayerService.class);
+                intent.setAction(PlayerService.ACTION_TOGGLE_PAUSE);
+                startService(intent);
+            }
+        });
+
         bottomNavigationView.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
@@ -363,40 +363,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void iniatiseBottomSheetView(){
-        image = findViewById(R.id.imageview_bottomsheet_image);
-        titre = findViewById(R.id.textview_bottomsheet_music_title);
-        artiste = findViewById(R.id.textview_bottomsheet_music_artist);
-        previous = findViewById(R.id.imageview_bottomsheet_previous_button);
-        play = findViewById(R.id.imageview_bottomsheet_play_button);
-        next = findViewById(R.id.imageview_bottomsheet_next_button);
-
-        alwaysVisibleBottomSheet = findViewById(R.id.bottom_sheet_always_visible_part);
-        bottomSheetBehavior = BottomSheetBehavior.from(findViewById(R.id.bottomsheet));
-
-        alwaysVisibleBottomSheet.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
-            }
-        });
-
-        bottomSheetBehavior.setBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
-            @Override
-            public void onStateChanged(@NonNull View view, int state) {
-                if(state==BottomSheetBehavior.STATE_EXPANDED){
-                    bottomNavigationView.setVisibility(View.GONE);
-                    alwaysVisibleBottomSheet.setVisibility(View.GONE);
-                }else {
-                    bottomNavigationView.setVisibility(View.VISIBLE);
-                    alwaysVisibleBottomSheet.setVisibility(View.VISIBLE);
-                }
-            }
-
-            @Override
-            public void onSlide(@NonNull View view, float v) {
-
-            }
-        });
 
         //progressBar = findViewById(R.id.progressbar_bottom_sheet_progress);
     }
@@ -419,6 +385,28 @@ public class MainActivity extends AppCompatActivity {
         if(bound){
             service.addSong(musique);
         }
+    }
+
+    private void openPlayingMusicActivity() {
+        final int[] val = new int[2];
+        DisplayMetrics displayMetrics = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+        floatingView.getLocationOnScreen(val);
+        final float actualPositionWidth = val[0];
+        final float actualPositionHeight = val[1];
+
+        final float screenMiddleHeight = displayMetrics.heightPixels/2;
+        final float screenMiddleWidth = displayMetrics.widthPixels / 2;
+
+        ObjectAnimator xanimator = ObjectAnimator.ofFloat(floatingView,"x", floatingView.getX(), screenMiddleWidth);
+        ObjectAnimator yanimator = ObjectAnimator.ofFloat(floatingView,"y", floatingView.getY(),  screenMiddleHeight);
+
+        AnimatorSet animatorSet = new AnimatorSet();
+        animatorSet.playTogether(xanimator, yanimator);
+        animatorSet.setInterpolator(new LinearInterpolator());
+        animatorSet.setDuration(500);
+        animatorSet.start();
+
     }
 
     public void startPlaylist(List<Musique> list, Musique musique, int position, boolean isShuffle){
@@ -529,6 +517,7 @@ public class MainActivity extends AppCompatActivity {
 
         isFragmentUnder = true;
         fragmentUnder = fragment;
+        bottomNavigationView.setVisibility(View.GONE);
     }
 
     public void openArtistDetail(Artiste artiste){
@@ -540,16 +529,29 @@ public class MainActivity extends AppCompatActivity {
                 .commit();
 
         isFragmentUnder = true;
-        fragmentUnder = fragmentUnder;
+        bottomNavigationView.setVisibility(View.GONE);
+
     }
 
     public void openPlaylistDetail(Playlist playlist){
-        PlaylistFragment fragment = PlaylistFragment.getInstance(playlist);
+        PlaylistDetailFragment fragment = PlaylistDetailFragment.getInstance(playlist);
         getSupportFragmentManager()
                 .beginTransaction()
                 .replace(R.id.container,fragment)
                 .addToBackStack(null)
                 .commit();
-        isFragmentUnder = false;
+        isFragmentUnder = true;
+        bottomNavigationView.setVisibility(View.GONE);
+    }
+
+    public class SwipeListener extends GestureDetector.SimpleOnGestureListener{
+
+        @Override
+        public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
+
+            Log.e("TAG","on vient de swiper");
+
+            return super.onFling(e1, e2, velocityX, velocityY);
+        }
     }
 }

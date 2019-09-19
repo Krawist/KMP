@@ -33,6 +33,7 @@ import com.example.kmp.Service.PlayerService;
 import com.google.gson.Gson;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 public class KmpViewModel extends AndroidViewModel {
@@ -61,6 +62,7 @@ public class KmpViewModel extends AndroidViewModel {
     private MutableLiveData<List<Integer>> favoriteSongsId;
 
     private static KmpViewModel INSTANCE = null;
+    private HashMap pathOfSongAlbumArt;
 
     private KmpViewModel(Application application, Context context){
         super(application);
@@ -84,7 +86,7 @@ public class KmpViewModel extends AndroidViewModel {
         allArtistes = new MutableLiveData<>();
         allArtistMusics = new MutableLiveData<>();
         allAlbumMusics = new MutableLiveData<>();
-
+        pathOfSongAlbumArt = new HashMap();
         favoriteSongsId = new MutableLiveData<>();
 
         loopingMode.setValue(PreferenceManager.getDefaultSharedPreferences(context)
@@ -201,10 +203,8 @@ public class KmpViewModel extends AndroidViewModel {
     }
 
     public LiveData<List<Musique>> getAllAlbumMusics(Context context, Album album) {
-
-        allAlbumMusics.setValue(repository.loadAllAlbumSongs(context,album.getIdAlbum()));
-
-        new UpdateMusicAsyncTask(context,allAlbumMusics).execute();
+        allAlbumMusics.setValue(repository.loadAllAlbumSongs(context,album.getIdAlbum(),pathOfSongAlbumArt));
+        //new UpdateMusicAsyncTask(context,allAlbumMusics).execute();
 
         return allAlbumMusics;
     }
@@ -212,11 +212,11 @@ public class KmpViewModel extends AndroidViewModel {
     public LiveData<List<Musique>> getAllArtistMusics(Context context, Artiste artiste) {
         if(allArtistMusics.getValue()!=null){
             if(allArtistMusics.getValue().get(0).getIdAlbum()!=artiste.getIdArtiste())
-                allArtistMusics.setValue(repository.loadAllArtistSongs(context,artiste.getIdArtiste()));
+                allArtistMusics.setValue(repository.loadAllArtistSongs(context,artiste.getIdArtiste(), pathOfSongAlbumArt));
         }else
-            allArtistMusics.setValue(repository.loadAllArtistSongs(context,artiste.getIdArtiste()));
+            allArtistMusics.setValue(repository.loadAllArtistSongs(context,artiste.getIdArtiste(), pathOfSongAlbumArt));
 
-        new UpdateMusicAsyncTask(context,allArtistMusics).execute();
+        //new UpdateMusicAsyncTask(context,allArtistMusics).execute();
 
         return allArtistMusics;
     }
@@ -248,11 +248,11 @@ public class KmpViewModel extends AndroidViewModel {
     public MutableLiveData<List<Musique>> getPlaylistSongs(Context context, Playlist playlist) {
         if(playlistSongs.getValue()!=null && !playlistSongs.getValue().isEmpty()){
             if(playlistSongs.getValue().get(0).getIdAlbum()!=playlist.getIdPlaylist())
-                playlistSongs.setValue(repository.loadAllPlaylistSongs(context,playlist.getIdPlaylist()));
+                playlistSongs.setValue(repository.loadAllPlaylistSongs(context,playlist.getIdPlaylist(), pathOfSongAlbumArt));
         }else
-            playlistSongs.setValue(repository.loadAllPlaylistSongs(context,playlist.getIdPlaylist()));
+            playlistSongs.setValue(repository.loadAllPlaylistSongs(context,playlist.getIdPlaylist(), pathOfSongAlbumArt));
 
-        new UpdateMusicAsyncTask(context,playlistSongs).execute();
+        //new UpdateMusicAsyncTask(context,playlistSongs).execute();
 
         return playlistSongs;
     }
@@ -293,15 +293,15 @@ public class KmpViewModel extends AndroidViewModel {
     }
 
     public void refreshData(Context context) {
-        if(ContextCompat.checkSelfPermission(context,Manifest.permission.READ_EXTERNAL_STORAGE)== PackageManager.PERMISSION_GRANTED){
 
-            allSongs.setValue(repository.loadAllMusics(context));
+        if(ContextCompat.checkSelfPermission(context,Manifest.permission.READ_EXTERNAL_STORAGE)== PackageManager.PERMISSION_GRANTED){
+            allAlbums.setValue(repository.loadAllAlbums(context, pathOfSongAlbumArt));
             allArtistes.setValue(repository.loadAllArtists(context));
-            allAlbums.setValue(repository.loadAllAlbums(context));
+            allSongs.setValue(repository.loadAllMusics(context, pathOfSongAlbumArt));
             playlists.setValue(repository.loadPlaylists(context));
 
-            new UpdateMusicAsyncTask(context,allSongs).execute();
-            new UpdateMusicAsyncTask(context,favoriteSongs).execute();
+            //new UpdateMusicAsyncTask(context,allSongs).execute();
+            //new UpdateMusicAsyncTask(context,favoriteSongs).execute();
 
         }else{
             context.startActivity(new Intent(context, PermissionActivity.class));
@@ -345,8 +345,8 @@ public class KmpViewModel extends AndroidViewModel {
     }
 
     public void refreshFavoriteSong(Context context) {
-        favoriteSongs.setValue(repository.loadFavoriteSong(context, favoriteSongsId.getValue()));
-        new UpdateMusicAsyncTask(context,favoriteSongs).execute();
+        favoriteSongs.setValue(repository.loadFavoriteSong(context, favoriteSongsId.getValue(),pathOfSongAlbumArt));
+        //new UpdateMusicAsyncTask(context,favoriteSongs).execute();
     }
 
     private class UpdateMusicAsyncTask extends AsyncTask<Void, Void, List<Musique>>{

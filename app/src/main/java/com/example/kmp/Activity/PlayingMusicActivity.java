@@ -13,6 +13,7 @@ import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.PorterDuff;
+import android.media.AudioManager;
 import android.os.Build;
 import android.os.Bundle;
 
@@ -123,7 +124,7 @@ public class PlayingMusicActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-
+        setVolumeControlStream(AudioManager.STREAM_MUSIC);
         if(Build.VERSION.SDK_INT >=16){
             View decorView = getWindow().getDecorView();
             int uiOptions = View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN ;
@@ -354,9 +355,9 @@ public class PlayingMusicActivity extends AppCompatActivity {
             @Override
             public void onChanged(Boolean aBoolean) {
                 if(aBoolean)
-                    playButton.setImageResource(R.drawable.ic_pause_circle_outline_black_24dp);
+                    playButton.setImageResource(R.drawable.ic_pause_black_24dp);
                 else
-                    playButton.setImageResource(R.drawable.ic_play_circle_outline_black_40dp);
+                    playButton.setImageResource(R.drawable.ic_play_arrow_black_24dp);
             }
         });
 
@@ -390,7 +391,7 @@ public class PlayingMusicActivity extends AppCompatActivity {
     }
 
     private void updateUiColors(ThemeColor themeColor) {
-        int previousColor = titreMusique.getHighlightColor();
+/*        int previousColor = titreMusique.getHighlightColor();
         ObjectAnimator animation = ObjectAnimator.ofInt(titreMusique, "textColor",previousColor,  themeColor.getBackgroundColor());
         animation.setEvaluator(new ArgbEvaluator());
         animation.setDuration(TRANSITION_TIME);
@@ -399,7 +400,7 @@ public class PlayingMusicActivity extends AppCompatActivity {
         animation = ObjectAnimator.ofInt(artisteMusique,"textColor", previousColor, themeColor.getBackgroundColor());
         animation.setEvaluator(new ArgbEvaluator());
         animation.setDuration(TRANSITION_TIME);
-        animation.start();
+        animation.start();*/
 
         //seekBar.getProgressDrawable().setColorFilter(themeColor.getBackgroundColor(), PorterDuff.Mode.SRC_ATOP);
     }

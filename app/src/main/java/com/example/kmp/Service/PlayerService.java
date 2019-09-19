@@ -15,6 +15,7 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.PowerManager;
 import android.preference.PreferenceManager;
+import android.provider.MediaStore;
 import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaSessionCompat;
@@ -112,16 +113,9 @@ public class PlayerService extends MediaBrowserServiceCompat implements AudioMan
         @Override
         public void onCallStateChanged(int state, String phoneNumber) {
             switch (state){
-
-                case TelephonyManager.CALL_STATE_OFFHOOK:
-                case TelephonyManager.CALL_STATE_RINGING:
-                    ongoingCall = true;
-                    pause();
-                    break;
-
                 case TelephonyManager.CALL_STATE_IDLE:
-                    if(ongoingCall){
-                        ongoingCall = false;
+                    if(pausedByTransientLossOfFocus){
+                        pausedByTransientLossOfFocus = false;
                         play();
                     }
                     break;
@@ -129,7 +123,6 @@ public class PlayerService extends MediaBrowserServiceCompat implements AudioMan
             }
         }
     };
-    private PowerManager.WakeLock wakeLock;
     private Playback playback;
     private boolean pausedByTransientLossOfFocus;
     private IntentFilter becomingNoisyReceiverIntentFilter = new IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY);
@@ -162,9 +155,15 @@ public class PlayerService extends MediaBrowserServiceCompat implements AudioMan
 
             case AudioManager.AUDIOFOCUS_GAIN:
                 playback.modifyVolume(1);
+                if(pausedByTransientLossOfFocus){
+                    play();
+                    pausedByTransientLossOfFocus = false;
+                }
                 break;
 
             case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT:
+                if(isPlaying())
+                    pausedByTransientLossOfFocus = true;
                 pause();
                 break;
 
@@ -179,10 +178,6 @@ public class PlayerService extends MediaBrowserServiceCompat implements AudioMan
     public void onCreate() {
         super.onCreate();
 
-        final PowerManager powerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
-        wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, getClass().getName());
-        wakeLock.setReferenceCounted(false);
-
         context = getApplicationContext();
 
         setupMediaSession();
@@ -194,7 +189,6 @@ public class PlayerService extends MediaBrowserServiceCompat implements AudioMan
         playback = new PlaybackImpl(this,context);
 
         initNotification();
-
     }
 
     @Override
@@ -466,7 +460,6 @@ public class PlayerService extends MediaBrowserServiceCompat implements AudioMan
 
     public  void pause(){
         model.getSongIsPlaying().setValue(false);
-        pausedByTransientLossOfFocus = false;
         if(!ongoingCall){
             registerReceiver(false);
         }
@@ -570,8 +563,7 @@ public class PlayerService extends MediaBrowserServiceCompat implements AudioMan
     private void regiserListenerForCalls(boolean register) {
         if(register){
             getTelelphonyManager().listen(phoneStateListener, PhoneStateListener.LISTEN_CALL_STATE);
-        }else
-            getTelelphonyManager().listen(null, PhoneStateListener.LISTEN_CALL_STATE);
+        }
     }
 
     private TelephonyManager getTelelphonyManager() {

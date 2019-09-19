@@ -23,7 +23,6 @@ import android.widget.TextView;
 
 import com.example.kmp.Activity.MainActivity;
 import com.example.kmp.Helper.Helper;
-import com.example.kmp.Modeles.Artiste;
 import com.example.kmp.Modeles.Musique;
 import com.example.kmp.Modeles.Playlist;
 import com.example.kmp.Modeles.ThemeColor;
@@ -40,7 +39,7 @@ import static com.example.kmp.Service.PlayerService.ACTION_PLAY_PLAYLIST;
 /**
  * A simple {@link Fragment} subclass.
  */
-public class PlaylistFragment extends Fragment {
+public class PlaylistDetailFragment extends Fragment {
 
 
     private Playlist playlist = null;
@@ -50,7 +49,7 @@ public class PlaylistFragment extends Fragment {
     private MusicAdapter adapter;
     private static final String PLAYLIST_TO_DISPLAY = "playlist_a_afficger";
 
-    public PlaylistFragment() {
+    public PlaylistDetailFragment() {
         // Required empty public constructor
     }
 
@@ -152,8 +151,8 @@ public class PlaylistFragment extends Fragment {
         });
     }
 
-    public static PlaylistFragment getInstance(Playlist playlist){
-        PlaylistFragment artistDetailFragment = new PlaylistFragment();
+    public static PlaylistDetailFragment getInstance(Playlist playlist){
+        PlaylistDetailFragment artistDetailFragment = new PlaylistDetailFragment();
         Bundle bundle = new Bundle();
         bundle.putSerializable(PLAYLIST_TO_DISPLAY, playlist);
         artistDetailFragment.setArguments(bundle);
@@ -188,7 +187,7 @@ public class PlaylistFragment extends Fragment {
         }
 
         public void setList(List<Musique> list) {
-            PlaylistFragment.this.musiqueList = list;
+            PlaylistDetailFragment.this.musiqueList = list;
             notifyDataSetChanged();
         }
 
@@ -233,29 +232,6 @@ public class PlaylistFragment extends Fragment {
                         getActivity().startService(intent);
                     }
                 });
-
-                if(model.getCurrentPLayingMusic().getValue()!=null){
-                    if(musique.getIdMusique()==model.getCurrentPLayingMusic().getValue().getIdMusique()){
-                        ThemeColor themeColor = model.getThemeColor().getValue();
-                        if(themeColor!=null){
-                            //itemView.setBackgroundColor(themeColor.getBackgroundColor());
-                            int previousColor = titreMusique.getHighlightColor();
-                            ObjectAnimator animation = ObjectAnimator.ofInt(titreMusique, "textColor",previousColor,  themeColor.getBackgroundColor());
-                            animation.setEvaluator(new ArgbEvaluator());
-                            animation.setDuration(TRANSITION_TIME);
-                            animation.start();
-
-                            animation = ObjectAnimator.ofInt(artisteMusique,"textColor", previousColor, themeColor.getBackgroundColor());
-                            animation.setEvaluator(new ArgbEvaluator());
-                            animation.setDuration(TRANSITION_TIME);
-                            animation.start();
-                        }else
-                            restoreDefaultColor();
-                    }else
-                        restoreDefaultColor();
-                }else{
-                    restoreDefaultColor();
-                }
 
                 Helper.builMusicItemContextMenu(getContext(), itemView, musique, position);
             }

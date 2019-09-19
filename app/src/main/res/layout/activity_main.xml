@@ -6,65 +6,103 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <LinearLayout
+    <RelativeLayout
         android:layout_height="match_parent"
         android:layout_width="match_parent"
         tools:context=".Activity.MainActivity"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:id="@+id/rootlayout">
 
-        <androidx.coordinatorlayout.widget.CoordinatorLayout
+        <com.google.android.material.appbar.AppBarLayout
+            android:id="@+id/appbarlayout"
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1">
+            android:layout_height="wrap_content"
+            android:theme="@style/AppTheme.AppBarOverlay"
+            android:elevation="0dp"
+            app:elevation="0dp"
+            android:layout_alignParentTop="true">
 
-            <com.google.android.material.appbar.AppBarLayout
+            <androidx.appcompat.widget.Toolbar
+                android:id="@+id/toolbar"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:theme="@style/AppTheme.AppBarOverlay"
-                android:elevation="0dp"
-                app:elevation="0dp">
+                android:layout_height="?attr/actionBarSize"
+                android:background="@android:color/holo_red_dark"
+                android:elevation="0dp">
 
-                <androidx.appcompat.widget.Toolbar
-                    android:id="@+id/toolbar"
-                    android:layout_width="match_parent"
-                    android:layout_height="?attr/actionBarSize"
-                    android:background="?attr/colorPrimary"
-                    android:elevation="0dp">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Large"
+                    android:text="Musique"
+                    android:textColor="@color/primaryTextColor"/>
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:textAppearance="@style/TextAppearance.AppCompat.Large"
-                        android:text="Musique"
-                        android:textColor="@color/primaryTextColor"/>
+            </androidx.appcompat.widget.Toolbar>
 
-                </androidx.appcompat.widget.Toolbar>
+        </com.google.android.material.appbar.AppBarLayout>
 
-            </com.google.android.material.appbar.AppBarLayout>
-
-            <androidx.viewpager.widget.ViewPager
-                android:id="@+id/viewpager_content_main"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"/>
-
-            <include layout="@layout/bottom_sheet"/>
-
-        </androidx.coordinatorlayout.widget.CoordinatorLayout>
+        <androidx.viewpager.widget.ViewPager
+            android:id="@+id/viewpager_content_main"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_below="@id/appbarlayout"
+            android:layout_above="@id/nav_view"
+            android:layout_alignWithParentIfMissing="true"/>
 
         <com.google.android.material.bottomnavigation.BottomNavigationView
             app:elevation="4dp"
             android:elevation="4dp"
             android:id="@+id/nav_view"
             android:layout_width="match_parent"
-            android:layout_height="50dp"
+            android:layout_height="wrap_content"
+            app:itemIconTint="@drawable/bottom_navigation_item_background"
             android:background="@android:color/white"
-            app:menu="@menu/bottom_nav_menu" />
+            app:menu="@menu/bottom_nav_menu"
+            android:layout_alignParentBottom="true"
+            android:visibility="visible"
+            android:saveEnabled="true"
+            app:labelVisibilityMode="labeled"/>
 
-    </LinearLayout>
+        <FrameLayout
+            android:id="@+id/container"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="visible"
+            android:elevation="4dp"/>
 
-    <FrameLayout
-        android:id="@+id/container"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
+        <androidx.cardview.widget.CardView
+            android:id="@+id/floatingview"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:layout_alignParentRight="true"
+            android:layout_margin="@dimen/fab_margin"
+            android:backgroundTint="@android:color/holo_red_dark"
+            android:layout_above="@id/nav_view"
+            android:layout_alignWithParentIfMissing="true"
+            app:cardCornerRadius="29dp"
+            app:cardElevation="4dp"
+            android:background="@android:color/black">
+
+            <ImageView
+                android:src="@drawable/logo"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:id="@+id/imageview_playing_music_image"/>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="#3E000000"/>
+
+            <ImageView
+                android:id="@+id/imageview_playbutton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                app:srcCompat="@drawable/ic_play_arrow_black_24dp"
+                android:tint="@android:color/white"/>
+
+        </androidx.cardview.widget.CardView>
+
+    </RelativeLayout>
 
 </RelativeLayout>

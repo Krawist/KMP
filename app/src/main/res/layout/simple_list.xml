@@ -26,11 +26,12 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_margin="@dimen/fab_margin"
-        android:src="@drawable/ic_shuffle_black_24dp"
+        app:srcCompat="@drawable/ic_shuffle_black_24dp"
         app:backgroundTint="@color/colorPrimaryDark"
         android:layout_gravity="bottom|right"
         android:tint="@color/primaryTextColor"
         android:layout_alignParentRight="true"
-        android:layout_alignParentBottom="true"/>
+        android:layout_alignParentBottom="true"
+        android:visibility="gone"/>
 
 </RelativeLayout>

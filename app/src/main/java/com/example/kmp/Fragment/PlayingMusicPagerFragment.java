@@ -36,7 +36,6 @@ public class PlayingMusicPagerFragment extends Fragment {
                 .load(musique.getPochette())
                 .centerCrop()
                 .error(R.drawable.logo)
-                .placeholder(R.drawable.logo)
                 .crossFade()
                 .into(imageView);
 

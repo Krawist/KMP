@@ -14,6 +14,7 @@ import com.example.kmp.Modeles.Musique;
 import com.example.kmp.Modeles.Favori;
 import com.example.kmp.Modeles.Playlist;
 
+import java.util.HashMap;
 import java.util.List;
 
 public class Repository {
@@ -27,8 +28,8 @@ public class Repository {
 
 
     /** load request **/
-    public List<Album> loadAllAlbums(Context context) {
-        return Helper.matchCursorToAlbums(Helper.getAllAlbum(context));
+    public List<Album> loadAllAlbums(Context context, HashMap<Integer, String> pathOfSongAlbumArt) {
+        return Helper.matchCursorToAlbums(Helper.getAllAlbum(context), pathOfSongAlbumArt);
     }
 
     public List<Artiste> loadAllArtists(Context context) {
@@ -40,24 +41,24 @@ public class Repository {
         return Helper.matchCursorToPlaylist(Helper.getPlaylist(context));
     }
 
-    public List<Musique> loadAllMusics(Context context){
-        return Helper.matchBasicCursorToMusics(Helper.getAllMusic(context));
+    public List<Musique> loadAllMusics(Context context, HashMap<Integer, String> pathOfSongAlbumArt){
+        return Helper.matchBasicCursorToMusics(Helper.getAllMusic(context), pathOfSongAlbumArt);
     }
 
-    public List<Musique> loadAllArtistSongs(Context context, int artisId){
-        return Helper.matchBasicCursorToMusics(Helper.getAllArtistSongs(context,artisId));
+    public List<Musique> loadAllArtistSongs(Context context, int artisId, HashMap<Integer, String> pathOfSongAlbumArt){
+        return Helper.matchBasicCursorToMusics(Helper.getAllArtistSongs(context,artisId),pathOfSongAlbumArt);
     }
 
-    public List<Musique> loadAllPlaylistSongs(Context context, int idPlaylist){
-        return Helper.matchPlaylistCursorToMusics(Helper.getPLaysListSongs(context,idPlaylist));
+    public List<Musique> loadAllPlaylistSongs(Context context, int idPlaylist, HashMap<Integer, String> pathOfSongAlbumArt){
+        return Helper.matchPlaylistCursorToMusics(Helper.getPLaysListSongs(context,idPlaylist), pathOfSongAlbumArt);
     }
 
-    public List<Musique> loadAllAlbumSongs(Context context, int albumId){
-        return Helper.matchBasicCursorToMusics(Helper.getAlbumMusic(context,albumId));
+    public List<Musique> loadAllAlbumSongs(Context context, int albumId, HashMap<Integer, String> pathOfSongAlbumArt){
+        return Helper.matchBasicCursorToMusics(Helper.getAlbumMusic(context,albumId), pathOfSongAlbumArt);
     }
 
-    public List<Musique> loadFavoriteSong(Context context, List<Integer> favoriList) {
-        return Helper.matchBasicCursorToMusics(Helper.getFavoriteSongs(context, favoriList));
+    public List<Musique> loadFavoriteSong(Context context, List<Integer> favoriList, HashMap<Integer, String> pathOfSongAlbumArt) {
+        return Helper.matchBasicCursorToMusics(Helper.getFavoriteSongs(context, favoriList), pathOfSongAlbumArt);
     }
 
     public LiveData<List<Favori>> getFavoriteSongsId(){

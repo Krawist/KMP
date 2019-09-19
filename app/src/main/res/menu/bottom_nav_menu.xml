@@ -1,24 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:android="http://schemas.android.com/apk/res/android">
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
         android:id="@+id/navigation_home"
         android:icon="@drawable/ic_home_black_24dp"
-        android:title="@string/title_home" />
+        android:title="@string/title_home"
+        app:showAsAction="withText"/>
 
     <item
         android:id="@+id/navigation_all_songs"
         android:icon="@drawable/ic_music_note_black_24dp"
-        android:title="@string/songs" />
+        android:title="@string/songs"
+        app:showAsAction="withText"/>
 
     <item
         android:id="@+id/navigation_albums"
         android:icon="@drawable/ic_album_black_24dp"
-        android:title="@string/albums" />
+        android:title="@string/albums"
+        app:showAsAction="withText"/>
 
     <item
         android:id="@+id/navigation_artists"
         android:icon="@drawable/ic_person_black_24dp"
-        android:title="@string/artistes" />
+        android:title="@string/artistes"
+        app:showAsAction="withText"/>
 
 </menu>

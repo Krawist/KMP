@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical" android:layout_width="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@android:color/black"
     android:clickable="true"
@@ -28,7 +30,7 @@
                 android:id="@+id/imageview_backbutton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:src="@drawable/ic_arrow_back_black_24dp"
+                app:srcCompat="@drawable/ic_arrow_back_black_24dp"
                 android:tint="@android:color/white"/>
 
         </androidx.appcompat.widget.Toolbar>
@@ -80,7 +82,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:tint="#FFEB3B"
-                android:src="@drawable/ic_favorite_border_black_24dp"
+                app:srcCompat="@drawable/ic_favorite_border_black_24dp"
                 android:backgroundTint="@android:color/transparent"/>
 
             <LinearLayout
@@ -117,7 +119,7 @@
                 android:layout_height="wrap_content"
                 android:tint="#FFF"
                 android:alpha=".3"
-                android:src="@drawable/ic_tune_black_24dp"
+                app:srcCompat="@drawable/ic_tune_black_24dp"
                 android:rotation="90"
                 android:backgroundTint="@android:color/transparent"/>
 
@@ -178,7 +180,7 @@
                     android:id="@+id/imagebutton_playing_music_shuffle"
                     android:layout_width="45dp"
                     android:layout_height="45dp"
-                    android:src="@drawable/ic_shuffle_black_24dp"
+                    app:srcCompat="@drawable/ic_shuffle_black_24dp"
                     android:backgroundTint="@android:color/transparent"
                     android:tint="@android:color/white"/>
 
@@ -191,9 +193,9 @@
 
                     <ImageView
                         android:id="@+id/imageview_playing_music_previous_button"
-                        android:layout_width="45dp"
-                        android:layout_height="45dp"
-                        android:src="@drawable/ic_fast_rewind_black_24dp"
+                        android:layout_width="@dimen/playing_music_control_button_size"
+                        android:layout_height="@dimen/playing_music_control_button_size"
+                        app:srcCompat="@drawable/ic_fast_rewind_black_24dp"
                         android:padding="@dimen/size_4dp"
                         android:tint="@color/primaryTextColor"
                         android:layout_marginRight="@dimen/size_8dp"
@@ -202,18 +204,18 @@
 
                     <ImageView
                         android:id="@+id/imageview_playing_music_play_button"
-                        android:layout_width="60dp"
-                        android:layout_height="60dp"
-                        android:src="@drawable/ic_play_circle_outline_black_40dp"
-                        android:padding="@dimen/size_4dp"
+                        android:layout_width="@dimen/playing_music_control_button_size"
+                        android:layout_height="@dimen/playing_music_control_button_size"
+                        app:srcCompat="@drawable/ic_play_arrow_black_24dp"
+                        android:padding="@dimen/size_8dp"
                         android:tint="@color/primaryTextColor"
                         android:foreground="?android:attr/selectableItemBackground"/>
 
                     <ImageView
                         android:id="@+id/imageview_playing_music_next_button"
-                        android:layout_width="45dp"
-                        android:layout_height="45dp"
-                        android:src="@drawable/ic_fast_forward_black_24dp"
+                        android:layout_width="@dimen/playing_music_control_button_size"
+                        android:layout_height="@dimen/playing_music_control_button_size"
+                        app:srcCompat="@drawable/ic_fast_forward_black_24dp"
                         android:padding="@dimen/size_4dp"
                         android:tint="@color/primaryTextColor"
                         android:layout_marginRight="@dimen/size_8dp"
@@ -226,7 +228,7 @@
                     android:id="@+id/imagebutton_playing_music_repeat"
                     android:layout_width="45dp"
                     android:layout_height="45dp"
-                    android:src="@drawable/ic_repeat_black_24dp"
+                    app:srcCompat="@drawable/ic_repeat_black_24dp"
                     android:backgroundTint="@android:color/transparent"
                     android:tint="@android:color/white"/>
 
