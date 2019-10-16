@@ -1,6 +1,7 @@
 package com.example.kmp.Fragment;
 
 
+import android.content.Context;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -18,6 +19,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
+import com.example.kmp.Adapter.AlbumAdapter;
 import com.example.kmp.Helper.Helper;
 import com.example.kmp.Activity.MainActivity;
 import com.example.kmp.Modeles.Album;
@@ -68,7 +70,7 @@ public class AlbumFragment extends Fragment {
             @Override
             public void onChanged(List<Album> albums) {
                 AlbumFragment.this.albums = albums;
-                configureAdapter();
+                //configureAdapter();
             }
         });
         albums = model.getAllAlbums().getValue();
@@ -79,7 +81,7 @@ public class AlbumFragment extends Fragment {
             if(adapter!=null){
                 adapter.setalbums(albums);
             }else{
-                adapter = new AlbumAdapter();
+                adapter = new AlbumAdapter(getContext(),albums);
             }
 
             recyclerView.setAdapter(adapter);
@@ -98,70 +100,6 @@ public class AlbumFragment extends Fragment {
     }
 
     private void configureRecyclerView() {
-        recyclerView.setLayoutManager(new GridLayoutManager(getContext(),3));
+        recyclerView.setLayoutManager(new GridLayoutManager(getContext(),Helper.getNumberItmePlatInLine(getActivity())));
     }
-
-    public class AlbumAdapter extends RecyclerView.Adapter<AlbumViewHolder>{
-
-        @NonNull
-        @Override
-        public AlbumViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-            return new AlbumViewHolder(LayoutInflater.from(getContext()).inflate(R.layout.album_item,parent,false));
-        }
-
-        @Override
-        public void onBindViewHolder(@NonNull AlbumViewHolder holder, int position) {
-            holder.bindData(albums.get(position), position);
-        }
-
-        @Override
-        public int getItemCount() {
-            if(albums!=null)
-                return albums.size();
-            else
-                return 0;
-        }
-
-        public void setalbums(List<Album> albums) {
-            AlbumFragment.this.albums = albums;
-            notifyDataSetChanged();
-        }
-    }
-
-    public class AlbumViewHolder extends RecyclerView.ViewHolder{
-
-        private final ImageView image;
-        private final TextView nomArtiste;
-        private final TextView nomAlbum;
-
-        public AlbumViewHolder(View itemView){
-            super(itemView);
-            image = itemView.findViewById(R.id.imageview_album_item_image);
-            nomArtiste = itemView.findViewById(R.id.textview_album_item_artiste_album);
-            nomAlbum = itemView.findViewById(R.id.textview_album_item_titre_album);
-        }
-
-        private void bindData(final Album album, final int position){
-            Glide.with(getContext())
-                    .load(album.getPochette())
-                    .error(R.drawable.logo)
-                    .error(R.drawable.logo)
-                    .crossFade()
-                    .centerCrop()
-                    .into(image);
-
-            nomAlbum.setText(album.getTitreAlbum());
-            nomArtiste.setText(album.getNomArtiste());
-
-            itemView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    ((MainActivity)getContext()).openAlbumDetail(album);
-                }
-            });
-
-            Helper.buildListMusicContextMenu(getContext(),itemView,position);
-        }
-    }
-
 }

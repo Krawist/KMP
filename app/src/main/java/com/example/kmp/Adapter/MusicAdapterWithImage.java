@@ -1,31 +1,38 @@
 package com.example.kmp.Adapter;
 
 import android.content.Context;
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.kmp.Activity.MainActivity;
 import com.example.kmp.Helper.Helper;
 import com.example.kmp.Modeles.Musique;
 import com.example.kmp.R;
+import com.example.kmp.Service.PlayerService;
+import com.example.kmp.ViewModel.KmpViewModel;
 
 import java.util.List;
 
-public class AllMusicAdapterWithImage extends RecyclerView.Adapter<AllMusicAdapterWithImage.MusiqueViewHolder> {
+import static com.example.kmp.Service.PlayerService.ACTION_PLAY_PLAYLIST;
+
+public class MusicAdapterWithImage extends RecyclerView.Adapter<MusicAdapterWithImage.MusiqueViewHolder> {
+    private final KmpViewModel model;
     private List<Musique> list;
     private Context context;
     private LayoutInflater inflater;
 
-    public AllMusicAdapterWithImage(Context context, List<Musique> list) {
+    public MusicAdapterWithImage(Context context, List<Musique> list, KmpViewModel model) {
         inflater = LayoutInflater.from(context);
         this.list = list;
         this.context = context;
+        this.model = model;
     }
 
     @NonNull
@@ -76,11 +83,41 @@ public class AllMusicAdapterWithImage extends RecyclerView.Adapter<AllMusicAdapt
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    ((MainActivity)context).startPlaylist(list,musique,position,false);
+                    startPlaylist(list,musique,position,false);
                 }
             });
 
             Helper.builMusicItemContextMenu(context,itemView,musique,position);
+        }
+    }
+
+    public void startPlaylist(List<Musique> list, Musique musique, int position, boolean isShuffle){
+        int positionOfStart = position;
+/*        if(isShuffle){
+            if(bound)
+                service.setShuffle();
+            positionOfStart = new Random().nextInt(list.size());
+        }*/
+
+        model.setPlayingList(list,context);
+        model.getPositionOfSongToPLay().setValue(positionOfStart);
+
+        if(list!=null){
+            model.getCurrentPLayingMusic().setValue(list.get(positionOfStart));
+        }else{
+            model.getCurrentPLayingMusic().setValue(null);
+        }
+
+        if(model.getCurrentPLayingMusic().getValue()==null ||
+                model.getPositionOfSongToPLay().getValue()==null ||
+                model.getListOfSongToPlay().getValue() == null){
+
+            Toast.makeText(context, R.string.une_erreur_est_survenue,Toast.LENGTH_SHORT).show();
+
+        }else {
+            Intent intent = new Intent(context, PlayerService.class);
+            intent.setAction(ACTION_PLAY_PLAYLIST);
+            context.startService(intent);
         }
     }
 }

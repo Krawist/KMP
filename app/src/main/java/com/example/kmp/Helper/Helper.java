@@ -9,12 +9,14 @@ import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Bitmap;
+import android.graphics.Point;
 import android.media.MediaMetadataRetriever;
 import android.net.Uri;
 import android.provider.MediaStore;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.ContextMenu;
+import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -59,6 +61,7 @@ public class Helper {
 
     public static final String PREFERENCES_LOOPING_MODE_KEY = "looping_mode";
     public static final String PREFERENCES_SHUFFLE_MODE_KEY = "shuffle_mode";
+    public static final String PREFERENCES_LAST_VISITED_PAGED_NUMBER = "derniere_page_ouverte";
 
     public static final String EXTERNAL_CONTENT_URI_VOLUME_NAME = "external";
 
@@ -452,7 +455,7 @@ public class Helper {
             String[] args = {musiques[i].getIdMusique()+""};
             context.getContentResolver().delete(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,where,args);*/
         }
-        model.refreshData(context);
+   /*     model.refreshData(context);*/
         dialog.dismiss();
     }
 
@@ -883,5 +886,20 @@ public class Helper {
         }
 
         return list;
+    }
+
+
+    public static int getNumberItmePlatInLine(Activity activity) {
+        Display display = activity.getWindowManager().getDefaultDisplay();
+        Point size = new Point();
+        display.getSize(size);
+        int with = size.x;
+
+        int oneItemWidth = (int)activity.getResources().getDimension(R.dimen.album_item_width);
+
+        int numberOfItemInLine = with / oneItemWidth;
+
+        return numberOfItemInLine;
+
     }
 }

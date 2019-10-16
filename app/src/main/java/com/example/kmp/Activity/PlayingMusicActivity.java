@@ -311,6 +311,7 @@ public class PlayingMusicActivity extends AppCompatActivity {
 
     private void configureViewModel() {
         model = KmpViewModel.getInstance(getApplication(), this);
+
         model.getCurrentPLayingMusic().observe(this, new Observer<Musique>() {
             @Override
             public void onChanged(Musique musique) {
@@ -383,7 +384,6 @@ public class PlayingMusicActivity extends AppCompatActivity {
         model.getPlayingSongPosition().observe(this, new Observer<Integer>() {
             @Override
             public void onChanged(Integer progress) {
-
                 seekBar.setProgress(progress);
                 tempsEcoule.setText(Helper.formatDurationToString(progress));
             }

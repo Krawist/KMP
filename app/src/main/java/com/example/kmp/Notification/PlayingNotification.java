@@ -68,10 +68,21 @@ public abstract class PlayingNotification extends Notification {
     private void createNotificationChannel() {
         NotificationChannel notificationChannel = notificationManager.getNotificationChannel(NOTIFICATION_CHANNEL_ID);
         if (notificationChannel == null) {
+            notificationChannel = new NotificationChannel(NOTIFICATION_CHANNEL_ID, service.getString(R.string.playing_notification_name), NotificationManager.IMPORTANCE_DEFAULT);
+            notificationChannel.setDescription(service.getString(R.string.playing_notification_description));
+            notificationChannel.enableLights(false);
+            notificationChannel.enableVibration(false);
+            notificationChannel.setShowBadge(false);
+
+            notificationManager.createNotificationChannel(notificationChannel);
+
+        }else{
+
             notificationChannel = new NotificationChannel(NOTIFICATION_CHANNEL_ID, service.getString(R.string.playing_notification_name), NotificationManager.IMPORTANCE_LOW);
             notificationChannel.setDescription(service.getString(R.string.playing_notification_description));
             notificationChannel.enableLights(false);
             notificationChannel.enableVibration(false);
+            notificationChannel.setShowBadge(false);
 
             notificationManager.createNotificationChannel(notificationChannel);
         }

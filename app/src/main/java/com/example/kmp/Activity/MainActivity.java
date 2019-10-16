@@ -8,7 +8,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
+import android.graphics.PorterDuff;
 import android.media.AudioManager;
+import android.os.Build;
 import android.os.Bundle;
 
 import com.example.kmp.Fragment.AlbumFragment;
@@ -23,6 +25,7 @@ import com.example.kmp.Modeles.Album;
 import com.example.kmp.Modeles.Artiste;
 import com.example.kmp.Modeles.Musique;
 import com.example.kmp.Modeles.Playlist;
+import com.example.kmp.Modeles.ThemeColor;
 import com.example.kmp.R;
 import com.example.kmp.Service.PlayerService;
 import com.example.kmp.ViewModel.KmpViewModel;
@@ -37,10 +40,17 @@ import androidx.core.view.GestureDetectorCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentPagerAdapter;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.Observer;
+import androidx.transition.ChangeBounds;
+import androidx.transition.Transition;
+import androidx.transition.TransitionInflater;
+import androidx.transition.TransitionSet;
 import androidx.viewpager.widget.ViewPager;
 
 import android.os.IBinder;
+import android.preference.PreferenceManager;
+import android.support.v4.media.session.PlaybackStateCompat;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.GestureDetector;
@@ -84,6 +94,12 @@ public class MainActivity extends AppCompatActivity {
     private long lastTouchMoment = System.currentTimeMillis();
     private boolean transitionFinished;
     private GestureDetectorCompat gestureDetectorCompat;
+    private ImageView nextButton;
+    private ImageView previousButton;
+    private ImageView favoriteButton;
+    private ImageView shuffleButton;
+    private ImageView repeatButton;
+    private boolean userHaveNavigate = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -140,8 +156,12 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        if(model!=null)
-            model.refreshData(this);
+        if(model!=null) {
+            boolean done = model.refreshData(this);
+            if(!done){
+                startActivity(new Intent(this, PermissionActivity.class));
+            }
+        }
 
         setVolumeControlStream(AudioManager.STREAM_MUSIC);
     }
@@ -155,10 +175,18 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        super.onBackPressed();
         if(isFragmentUnder) {
+            userHaveNavigate = true;
+            super.onBackPressed();
             isFragmentUnder = false;
             bottomNavigationView.setVisibility(View.VISIBLE);
+        }else{
+            if(userHaveNavigate){
+                Toast.makeText(this, "Appuyer a nouveau pour quitter",Toast.LENGTH_SHORT).show();
+                userHaveNavigate = false;
+            }else{
+                super.onBackPressed();
+            }
         }
     }
 
@@ -195,10 +223,10 @@ public class MainActivity extends AppCompatActivity {
         model.getLoopingMode().observe(this, new Observer<Integer>() {
             @Override
             public void onChanged(Integer integer) {
-                Intent intent = new Intent(MainActivity.this,PlayerService.class);
+/*                Intent intent = new Intent(MainActivity.this,PlayerService.class);
                 intent.setAction(PlayerService.ACTION_REPEAT);
                 intent.putExtra(PlayerService.REPEAT_MODE,integer);
-                startService(intent);
+                startService(intent);*/
             }
         });
 
@@ -231,25 +259,78 @@ public class MainActivity extends AppCompatActivity {
                 model.refreshFavoriteSong(MainActivity.this);
             }
         });
+
+        model.getLoopingMode().observe(this, new Observer<Integer>() {
+            @Override
+            public void onChanged(Integer integer) {
+                switch (integer){
+
+                    case PlaybackStateCompat.REPEAT_MODE_NONE:
+                        repeatButton.setImageAlpha(100);
+                        repeatButton.setImageResource(R.drawable.ic_repeat_black_24dp);
+                        break;
+
+                    case PlaybackStateCompat.REPEAT_MODE_ALL:
+                        repeatButton.setImageAlpha(255);
+                        repeatButton.setImageResource(R.drawable.ic_repeat_black_24dp);
+                        break;
+
+                    case PlaybackStateCompat.REPEAT_MODE_ONE:
+                        repeatButton.setImageAlpha(255);
+                        repeatButton.setImageResource(R.drawable.ic_repeat_one_black_24dp);
+                        break;
+
+                }
+            }
+        });
+
+        model.getShuffleMode().observe(this, new Observer<Boolean>() {
+            @Override
+            public void onChanged(Boolean aBoolean) {
+                if(aBoolean){
+                    shuffleButton.setImageAlpha(255);
+                }else{
+                    shuffleButton.setImageAlpha(100);
+                }
+            }
+        });
+
+        model.getThemeColor().observe(this, new Observer<ThemeColor>() {
+            @Override
+            public void onChanged(final ThemeColor themeColor) {
+                final View vue = findViewById(R.id.layout_activity_main_control);
+/*                ObjectAnimator animator = ObjectAnimator.ofInt(vue,"backgroundColor",themeColor.getBackgroundColor());
+                animator.setDuration(1000);
+                animator.addListener(new AnimatorListenerAdapter() {
+                    @Override
+                    public void onAnimationEnd(Animator animation) {
+                        vue.setBackgroundColor(themeColor.getBackgroundColor());
+                    }
+                });*/
+
+                vue.getBackground().setColorFilter(themeColor.getBackgroundColor(), PorterDuff.Mode.SRC_ATOP);
+            }
+        });
     }
 
     private void configureBottomSheet() {
        Musique musique = model.getCurrentPLayingMusic().getValue();
-       /* Bitmap bitmap = null;
-        if(TextUtils.isEmpty(musique.getPochette()) || musique.getPochette()==null)
-            bitmap = BitmapFactory.decodeResource(getResources(),R.drawable.logo);
-        else {
-            bitmap = BitmapFactory.decodeFile(musique.getPochette());
-            if (bitmap != null)
-                bitmap = BitmapFactory.decodeResource(getResources(),R.drawable.logo);
-        }
-        playingMusicImage.setImageBitmap(bitmap);*/
        Helper.loadCircleImage(this,playingMusicImage,musique.getPochette(),56);
+
+        if(model.getFavoriteSongs().getValue()!=null){
+            if(model.getFavoriteSongsId().getValue().contains(musique.getIdMusique())){
+                favoriteButton.setImageResource(R.drawable.ic_favorite_black_24dp);
+            }else{
+                favoriteButton.setImageResource(R.drawable.ic_favorite_border_black_24dp);
+            }
+        }
 
     }
 
     private void configureView() {
         viewPager.setAdapter(new ViewPagerAdapter(getSupportFragmentManager()));
+        int lastVisitedPage = PreferenceManager.getDefaultSharedPreferences(this).getInt(Helper.PREFERENCES_LAST_VISITED_PAGED_NUMBER,0);
+        viewPager.setCurrentItem(lastVisitedPage,false);
         //tabLayout.setupWithViewPager(viewPager);
     }
 
@@ -263,12 +344,73 @@ public class MainActivity extends AppCompatActivity {
         floatingView = findViewById(R.id.floatingview);
         rootLayout = findViewById(R.id.rootlayout);
 
+        nextButton = findViewById(R.id.imageview_activity_main_forward_button);
+        previousButton = findViewById(R.id.imageview_activity_main_rewind_button);
+        favoriteButton = findViewById(R.id.imageview_activity_main_like_button);
+        shuffleButton = findViewById(R.id.imageview_activity_main_shuffle_button);
+        repeatButton = findViewById(R.id.imageview_activity_main_repeat_button);
+
         addActionsOnViews();
 
         iniatiseBottomSheetView();
     }
 
     private void addActionsOnViews() {
+
+        nextButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MainActivity.this, PlayerService.class);
+                intent.setAction(PlayerService.ACTION_SKIP_TO_NEXT);
+                startService(intent);
+            }
+        });
+
+        previousButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MainActivity.this, PlayerService.class);
+                intent.setAction(PlayerService.ACTION_SKIP_TO_PREVIOUS);
+                startService(intent);
+            }
+        });
+
+        shuffleButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(bound){
+                    service.changeShuffleMode();
+                }
+            }
+        });
+
+        repeatButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(bound){
+                    service.changeRepeatMode();
+                }
+            }
+        });
+
+
+        favoriteButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Musique musique = model.getCurrentPLayingMusic().getValue();
+                musique.setLiked(!musique.isLiked());
+
+                if(model.getFavoriteSongsId().getValue()!=null){
+                    if(model.getFavoriteSongsId().getValue().contains(musique.getIdMusique())){
+                        favoriteButton.setImageResource(R.drawable.ic_favorite_border_black_24dp);
+                        model.removeFromFavorite(MainActivity.this,musique.getIdMusique());
+                    }else{
+                        favoriteButton.setImageResource(R.drawable.ic_favorite_black_24dp);
+                        model.addToFavorite(MainActivity.this,musique.getIdMusique());
+                    }
+                }
+            }
+        });
 
         viewPager.setOffscreenPageLimit(2);
         viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
@@ -280,26 +422,35 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onPageSelected(int position) {
                 int resId = 0;
+                int pos = 0;
                 switch (position){
                     case 0:
                         resId = R.id.navigation_home;
+                        pos = 0;
                         break;
 
                     case 1:
                         resId = R.id.navigation_all_songs;
+                        pos = 1;
                         break;
 
                     case 2:
                         resId = R.id.navigation_albums;
+                        pos = 2;
                         break;
 
                     case 3:
                         resId = R.id.navigation_artists;
+                        pos = 3;
                         break;
                 }
 
                 if(resId!=0){
                     bottomNavigationView.setSelectedItemId(resId);
+                    PreferenceManager.getDefaultSharedPreferences(MainActivity.this)
+                            .edit()
+                            .putInt(Helper.PREFERENCES_LAST_VISITED_PAGED_NUMBER,pos)
+                            .apply();
                 }
             }
 
@@ -322,6 +473,7 @@ public class MainActivity extends AppCompatActivity {
         bottomNavigationView.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
+                userHaveNavigate = true;
                 return openFragment(menuItem.getItemId());
             }
         });
@@ -507,10 +659,18 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
-    public void openAlbumDetail(Album album){
+    public void openAlbumDetail(Album album, View view){
         DetailAlbumFragment fragment = DetailAlbumFragment.getInstance(album);
-        getSupportFragmentManager()
-                .beginTransaction()
+        FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
+
+        if(Build.VERSION.SDK_INT>=21){
+            Transition transition = new ChangeBounds();
+            fragment.setSharedElementEnterTransition(transition);
+            fragment.setSharedElementReturnTransition(transition);
+            fragmentTransaction.addSharedElement(view.findViewById(R.id.imageview_album_item_image),"album_art_transition");
+        }
+
+        fragmentTransaction
                 .replace(R.id.container,fragment)
                 .addToBackStack(null)
                 .commit();

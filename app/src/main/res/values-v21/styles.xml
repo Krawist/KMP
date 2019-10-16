@@ -1,8 +1,9 @@
 <resources>
 
-    <style name="PlayingMusicTheme" parent="AppTheme.NoActionBar">
+    <style name="AppTheme.NoActionBar" parent="AppTheme">
         <item name="windowNoTitle">true</item>
-        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:windowSharedElementEnterTransition">@transition/album_transition</item>
+        <item name="android:windowContentTransitions">true</item>
     </style>
 
 </resources>

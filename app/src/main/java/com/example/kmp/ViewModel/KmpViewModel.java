@@ -156,9 +156,9 @@ public class KmpViewModel extends AndroidViewModel {
             //playingSongPosition.setValue(currentPLayingMusic.getValue().getBookmark());
         }
 
-        Intent intent = new Intent(context, PlayerService.class);
+/*        Intent intent = new Intent(context, PlayerService.class);
         intent.setAction(PlayerService.ACTION_LOAD);
-        context.startService(intent);
+        context.startService(intent);*/
     }
 
     public MutableLiveData<ThemeColor> getThemeColor() {
@@ -292,19 +292,16 @@ public class KmpViewModel extends AndroidViewModel {
                 .apply();
     }
 
-    public void refreshData(Context context) {
+    public boolean refreshData(Context context) {
 
         if(ContextCompat.checkSelfPermission(context,Manifest.permission.READ_EXTERNAL_STORAGE)== PackageManager.PERMISSION_GRANTED){
             allAlbums.setValue(repository.loadAllAlbums(context, pathOfSongAlbumArt));
             allArtistes.setValue(repository.loadAllArtists(context));
             allSongs.setValue(repository.loadAllMusics(context, pathOfSongAlbumArt));
             playlists.setValue(repository.loadPlaylists(context));
-
-            //new UpdateMusicAsyncTask(context,allSongs).execute();
-            //new UpdateMusicAsyncTask(context,favoriteSongs).execute();
-
+            return true;
         }else{
-            context.startActivity(new Intent(context, PermissionActivity.class));
+            return false;
         }
     }
 

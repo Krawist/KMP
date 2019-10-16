@@ -14,7 +14,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.example.kmp.Activity.MainActivity;
-import com.example.kmp.Adapter.AllMusicAdapterWithImage;
+import com.example.kmp.Adapter.MusicAdapterWithImage;
 import com.example.kmp.Helper.Helper;
 import com.example.kmp.Modeles.Musique;
 import com.example.kmp.Modeles.ThemeColor;
@@ -31,7 +31,7 @@ public class AllMusicFragment extends Fragment {
 
     private KmpViewModel model;
     private List<Musique> musiqueList;
-    private AllMusicAdapterWithImage adapter;
+    private MusicAdapterWithImage adapter;
     private RecyclerView recyclerView;
     private FloatingActionButton playShuffle;
 
@@ -89,7 +89,7 @@ public class AllMusicFragment extends Fragment {
             if(adapter!=null){
                 adapter.setList(musiqueList);
             }else{
-                adapter = new AllMusicAdapterWithImage(getContext(), musiqueList);
+                adapter = new MusicAdapterWithImage(getContext(), musiqueList, model);
             }
             recyclerView.setAdapter(adapter);
         }else{

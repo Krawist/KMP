@@ -30,7 +30,12 @@ public class PermissionActivity extends AppCompatActivity {
         grantPermisionsResult.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                ActivityCompat.requestPermissions(PermissionActivity.this, PERMISSION_ARRAY,READ_EXTERNAL_STORAGE_REQUEST_CODE);
+               if(ActivityCompat.checkSelfPermission(PermissionActivity.this,Manifest.permission.READ_EXTERNAL_STORAGE)==PackageManager.PERMISSION_GRANTED) {
+                   startActivity(new Intent(PermissionActivity.this, MainActivity.class));
+                   finish();
+               }else{
+                   ActivityCompat.requestPermissions(PermissionActivity.this, PERMISSION_ARRAY,READ_EXTERNAL_STORAGE_REQUEST_CODE);
+               }
             }
         });
     }
@@ -43,8 +48,6 @@ public class PermissionActivity extends AppCompatActivity {
                     && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 startActivity(new Intent(PermissionActivity.this, MainActivity.class));
                 finish();
-            }else{
-
             }
         }
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);

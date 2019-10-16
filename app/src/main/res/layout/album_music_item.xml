@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal" android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="@dimen/fab_margin"
+    android:foreground="?android:attr/selectableItemBackground">
+
+    <TextView
+        android:id="@+id/textview_album_music_item_sound_tranck"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@android:color/black"
+        android:textAppearance="@style/TextAppearance.AppCompat.Subhead"
+        android:layout_gravity="center"
+        android:layout_marginEnd="@dimen/fab_margin"
+        android:layout_marginRight="@dimen/fab_margin"
+        android:text="12"/>
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_weight="1"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            android:singleLine="true"
+            android:id="@+id/textview_simple_item_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Titre musique"
+            android:textColor="@android:color/black"
+            android:paddingBottom="@dimen/size_4dp"
+            android:textAppearance="@style/TextAppearance.AppCompat.Body1"/>
+
+        <TextView
+            android:id="@+id/textview_simple_item_second_text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Titre musique"
+            android:alpha=".8"
+            android:textColor="@android:color/black"
+            android:singleLine="true"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:layout_marginLeft="@dimen/size_8dp">
+        <TextView
+            android:id="@+id/textview_simple_item_third_text"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:text="03:28"
+            android:alpha=".8"
+            android:gravity="bottom"
+            android:textColor="@android:color/black"/>
+    </LinearLayout>
+
+</LinearLayout>

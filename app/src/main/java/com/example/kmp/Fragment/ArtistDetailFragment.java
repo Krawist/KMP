@@ -19,7 +19,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.example.kmp.Activity.MainActivity;
-import com.example.kmp.Adapter.AllMusicAdapterWithImage;
+import com.example.kmp.Adapter.MusicAdapterWithImage;
 import com.example.kmp.Helper.Helper;
 import com.example.kmp.Modeles.Artiste;
 import com.example.kmp.Modeles.Musique;
@@ -39,7 +39,7 @@ public class ArtistDetailFragment extends Fragment {
     KmpViewModel model;
     private List<Musique> musiqueList;
     private RecyclerView recyclerView;
-    private AllMusicAdapterWithImage adapter;
+    private MusicAdapterWithImage adapter;
     private static final String ARTIST_TO_DISPLAY = "artiste_a_afficger";
 
     public ArtistDetailFragment() {
@@ -96,7 +96,7 @@ public class ArtistDetailFragment extends Fragment {
             if(adapter!=null)
                 adapter.setList(musiqueList);
             else
-                adapter = new AllMusicAdapterWithImage(getContext(), musiqueList);
+                adapter = new MusicAdapterWithImage(getContext(), musiqueList, null);
 
             recyclerView.setAdapter(adapter);
         }

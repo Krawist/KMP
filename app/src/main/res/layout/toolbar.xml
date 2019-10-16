@@ -13,7 +13,7 @@
         android:id="@+id/imageview_backbutton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:src="@drawable/ic_arrow_back_black_24dp"
+        app:srcCompat="@drawable/ic_arrow_back_black_24dp"
         android:tint="@android:color/white"
         android:paddingTop="@dimen/size_8dp"
         android:paddingBottom="@dimen/size_8dp"
@@ -28,6 +28,7 @@
         android:text="Nom Album"
         android:textAppearance="@style/TextAppearance.AppCompat.Medium"
         android:textColor="@color/primaryTextColor"
-        android:singleLine="true"/>
+        android:singleLine="true"
+        android:transitionName="@string/toolbar_title_transition_name"/>
 
 </androidx.appcompat.widget.Toolbar>

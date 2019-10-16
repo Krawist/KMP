@@ -26,7 +26,7 @@
                 android:id="@+id/toolbar"
                 android:layout_width="match_parent"
                 android:layout_height="?attr/actionBarSize"
-                android:background="@android:color/holo_red_dark"
+                android:background="@color/colorPrimary"
                 android:elevation="0dp">
 
                 <TextView
@@ -69,39 +69,106 @@
             android:visibility="visible"
             android:elevation="4dp"/>
 
-        <androidx.cardview.widget.CardView
-            android:id="@+id/floatingview"
-            android:layout_width="56dp"
-            android:layout_height="56dp"
-            android:layout_alignParentRight="true"
-            android:layout_margin="@dimen/fab_margin"
-            android:backgroundTint="@android:color/holo_red_dark"
-            android:layout_above="@id/nav_view"
+        <RelativeLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
             android:layout_alignWithParentIfMissing="true"
-            app:cardCornerRadius="29dp"
-            app:cardElevation="4dp"
-            android:background="@android:color/black">
+            android:layout_above="@id/nav_view"
+            android:layout_margin="@dimen/fab_margin"
+            android:elevation="@dimen/size_4dp">
 
-            <ImageView
-                android:src="@drawable/logo"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:id="@+id/imageview_playing_music_image"/>
+            <androidx.cardview.widget.CardView
+                android:id="@+id/floatingview"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:backgroundTint="@android:color/holo_red_dark"
+                app:cardCornerRadius="29dp"
+                android:background="@android:color/black"
+                android:layout_alignParentEnd="true">
 
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:background="#3E000000"/>
+                <ImageView
+                    android:src="@drawable/logo"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:id="@+id/imageview_playing_music_image"/>
 
-            <ImageView
-                android:id="@+id/imageview_playbutton"
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="#3E000000"/>
+
+                <ImageView
+                    android:id="@+id/imageview_playbutton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    app:srcCompat="@drawable/ic_play_arrow_black_24dp"
+                    android:tint="@android:color/white"/>
+
+            </androidx.cardview.widget.CardView>
+
+            <LinearLayout
+                android:id="@+id/layout_activity_main_control"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                app:srcCompat="@drawable/ic_play_arrow_black_24dp"
-                android:tint="@android:color/white"/>
+                android:orientation="horizontal"
+                android:layout_centerVertical="true"
+                android:layout_alignParentEnd="true"
+                android:layout_marginRight="30dp"
+                android:background="@drawable/music_control_background"
+                android:gravity="center_vertical"
+                android:paddingRight="26dp"
+                android:paddingLeft="@dimen/size_8dp">
 
-        </androidx.cardview.widget.CardView>
+                <ImageView
+                    android:id="@+id/imageview_activity_main_rewind_button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:srcCompat="@drawable/ic_fast_rewind_black_24dp"
+                    android:tint="@android:color/white"
+                    android:padding="@dimen/size_4dp"
+                    android:foreground="?android:attr/selectableItemBackground"/>
+
+                <ImageView
+                    android:id="@+id/imageview_activity_main_shuffle_button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:srcCompat="@drawable/ic_shuffle_black_24dp"
+                    android:tint="@android:color/white"
+                    android:padding="@dimen/size_4dp"
+                    android:foreground="?android:attr/selectableItemBackground"/>
+
+                <ImageView
+                    android:id="@+id/imageview_activity_main_like_button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:srcCompat="@drawable/ic_favorite_border_black_24dp"
+                    android:tint="@android:color/white"
+                    android:padding="@dimen/size_4dp"
+                    android:foreground="?android:attr/selectableItemBackground"/>
+
+                <ImageView
+                    android:id="@+id/imageview_activity_main_repeat_button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:srcCompat="@drawable/ic_repeat_black_24dp"
+                    android:tint="@android:color/white"
+                    android:padding="@dimen/size_4dp"
+                    android:foreground="?android:attr/selectableItemBackground"/>
+
+                <ImageView
+                    android:id="@+id/imageview_activity_main_forward_button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:srcCompat="@drawable/ic_fast_forward_black_24dp"
+                    android:tint="@android:color/white"
+                    android:padding="@dimen/size_4dp"
+                    android:foreground="?android:attr/selectableItemBackground"/>
+
+            </LinearLayout>
+
+        </RelativeLayout>
 
     </RelativeLayout>
 
