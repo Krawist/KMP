@@ -32,10 +32,11 @@ public class PlayingMusicPagerFragment extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         ImageView imageView = new ImageView(getContext());
+        imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
         Glide.with(getContext())
                 .load(musique.getPochette())
                 .centerCrop()
-                .error(R.drawable.logo)
+                .error(R.drawable.headphones_high_quality)
                 .crossFade()
                 .into(imageView);
 

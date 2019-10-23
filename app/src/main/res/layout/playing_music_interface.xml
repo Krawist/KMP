@@ -78,6 +78,7 @@
             android:padding="@dimen/fab_margin">
 
             <ImageButton
+                android:transitionName="@string/like_button_transition"
                 android:id="@+id/imagebutton_playing_music_favorite"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -177,6 +178,7 @@
                 android:gravity="center_vertical">
 
                 <ImageButton
+                    android:transitionName="@string/shuffle_button_transition"
                     android:id="@+id/imagebutton_playing_music_shuffle"
                     android:layout_width="45dp"
                     android:layout_height="45dp"
@@ -192,6 +194,7 @@
                     android:gravity="center">
 
                     <ImageView
+                        android:transitionName="@string/rewind_button_transition"
                         android:id="@+id/imageview_playing_music_previous_button"
                         android:layout_width="@dimen/playing_music_control_button_size"
                         android:layout_height="@dimen/playing_music_control_button_size"
@@ -203,6 +206,7 @@
                         android:foreground="?android:attr/selectableItemBackground"/>
 
                     <ImageView
+                        android:transitionName="@string/play_pause_button_transition"
                         android:id="@+id/imageview_playing_music_play_button"
                         android:layout_width="@dimen/playing_music_control_button_size"
                         android:layout_height="@dimen/playing_music_control_button_size"
@@ -212,6 +216,7 @@
                         android:foreground="?android:attr/selectableItemBackground"/>
 
                     <ImageView
+                        android:transitionName="@string/forward_button_transition"
                         android:id="@+id/imageview_playing_music_next_button"
                         android:layout_width="@dimen/playing_music_control_button_size"
                         android:layout_height="@dimen/playing_music_control_button_size"
@@ -225,6 +230,7 @@
                 </LinearLayout>
 
                 <ImageButton
+                    android:transitionName="@string/repeat_button_transition"
                     android:id="@+id/imagebutton_playing_music_repeat"
                     android:layout_width="45dp"
                     android:layout_height="45dp"

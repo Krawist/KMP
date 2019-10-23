@@ -6,7 +6,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".Fragment.DetailAlbumFragment"
-    android:background="@android:color/white">
+    android:background="@android:color/white"
+    android:fitsSystemWindows="true">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -31,11 +32,11 @@
             <include layout="@layout/content_detail_album" />
 
             <com.google.android.material.floatingactionbutton.FloatingActionButton
-                android:id="@+id/floating_button_content_detail_play_all"
+                android:id="@+id/floating_button_content_detail_shuffle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_margin="@dimen/fab_margin"
-                android:src="@drawable/ic_shuffle_black_24dp"
+                app:srcCompat="@drawable/ic_shuffle_black_24dp"
                 app:backgroundTint="@color/colorPrimaryDark"
                 android:layout_gravity="bottom|right"
                 android:tint="@color/primaryTextColor"/>

@@ -1,6 +1,5 @@
 package com.example.kmp.Modeles;
 
-import androidx.annotation.NonNull;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
 
@@ -15,6 +14,15 @@ public class Playlist implements Serializable {
     private String nomPlaylist;
     private String pochette;
     private int nombreSong;
+    private List<Musique> songsOfPlaylist;
+
+    public List<Musique> getSongsOfPlaylist() {
+        return songsOfPlaylist;
+    }
+
+    public void setSongsOfPlaylist(List<Musique> songsOfPlaylist) {
+        this.songsOfPlaylist = songsOfPlaylist;
+    }
 
     public int getNombreSong() {
         return nombreSong;

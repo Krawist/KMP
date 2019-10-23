@@ -6,6 +6,19 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
+    <ImageView
+        android:id="@+id/imageview_home_background"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:src="@color/colorAccent"
+        android:visibility="gone"/>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#20000000"
+        android:visibility="gone"/>
+
     <RelativeLayout
         android:layout_height="match_parent"
         android:layout_width="match_parent"
@@ -18,16 +31,13 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:theme="@style/AppTheme.AppBarOverlay"
-            android:elevation="0dp"
-            app:elevation="0dp"
             android:layout_alignParentTop="true">
 
             <androidx.appcompat.widget.Toolbar
                 android:id="@+id/toolbar"
                 android:layout_width="match_parent"
                 android:layout_height="?attr/actionBarSize"
-                android:background="@color/colorPrimary"
-                android:elevation="0dp">
+                android:background="@color/colorPrimary">
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -54,22 +64,14 @@
             android:id="@+id/nav_view"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:itemIconTint="@drawable/bottom_navigation_item_background"
-            android:background="@android:color/white"
             app:menu="@menu/bottom_nav_menu"
             android:layout_alignParentBottom="true"
             android:visibility="visible"
             android:saveEnabled="true"
             app:labelVisibilityMode="labeled"/>
 
-        <FrameLayout
-            android:id="@+id/container"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:visibility="visible"
-            android:elevation="4dp"/>
-
-        <RelativeLayout
+        <androidx.coordinatorlayout.widget.CoordinatorLayout
+            android:id="@+id/layout_control"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentEnd="true"
@@ -82,16 +84,18 @@
                 android:id="@+id/floatingview"
                 android:layout_width="56dp"
                 android:layout_height="56dp"
-                android:backgroundTint="@android:color/holo_red_dark"
+                android:backgroundTint="@color/colorPrimary"
                 app:cardCornerRadius="29dp"
                 android:background="@android:color/black"
-                android:layout_alignParentEnd="true">
+                android:layout_alignParentEnd="true"
+                android:layout_gravity="right|end">
 
                 <ImageView
                     android:src="@drawable/logo"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:id="@+id/imageview_playing_music_image"/>
+                    android:id="@+id/imageview_playing_music_image"
+                    android:scaleType="centerCrop"/>
 
                 <View
                     android:layout_width="match_parent"
@@ -99,6 +103,7 @@
                     android:background="#3E000000"/>
 
                 <ImageView
+                    android:transitionName="@string/play_pause_button_transition"
                     android:id="@+id/imageview_playbutton"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -119,7 +124,8 @@
                 android:background="@drawable/music_control_background"
                 android:gravity="center_vertical"
                 android:paddingRight="26dp"
-                android:paddingLeft="@dimen/size_8dp">
+                android:paddingLeft="@dimen/size_8dp"
+                android:layout_gravity="center_vertical">
 
                 <ImageView
                     android:id="@+id/imageview_activity_main_rewind_button"
@@ -128,9 +134,11 @@
                     app:srcCompat="@drawable/ic_fast_rewind_black_24dp"
                     android:tint="@android:color/white"
                     android:padding="@dimen/size_4dp"
+                    android:transitionName="@string/rewind_button_transition"
                     android:foreground="?android:attr/selectableItemBackground"/>
 
                 <ImageView
+                    android:transitionName="@string/shuffle_button_transition"
                     android:id="@+id/imageview_activity_main_shuffle_button"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -140,6 +148,7 @@
                     android:foreground="?android:attr/selectableItemBackground"/>
 
                 <ImageView
+                    android:transitionName="@string/like_button_transition"
                     android:id="@+id/imageview_activity_main_like_button"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -149,6 +158,7 @@
                     android:foreground="?android:attr/selectableItemBackground"/>
 
                 <ImageView
+                    android:transitionName="@string/repeat_button_transition"
                     android:id="@+id/imageview_activity_main_repeat_button"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -158,6 +168,7 @@
                     android:foreground="?android:attr/selectableItemBackground"/>
 
                 <ImageView
+                    android:transitionName="@string/forward_button_transition"
                     android:id="@+id/imageview_activity_main_forward_button"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -168,7 +179,7 @@
 
             </LinearLayout>
 
-        </RelativeLayout>
+        </androidx.coordinatorlayout.widget.CoordinatorLayout>
 
     </RelativeLayout>
 

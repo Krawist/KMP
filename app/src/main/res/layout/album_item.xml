@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="150dp"
+    android:layout_height="@dimen/album_item_size"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:foreground="?android:attr/selectableItemBackground"
     android:layout_margin="1dp">
@@ -11,6 +11,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:background="@color/colorPrimary"
+            android:scaleType="centerCrop"
             android:transitionName="@string/image_transition_name"/>
 
         <LinearLayout
@@ -28,6 +29,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="Titre Album"
+                android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle1"
                 android:textColor="@android:color/white"
                 android:textStyle="bold"
                 android:singleLine="true"
@@ -40,7 +42,8 @@
                 android:text="Artiste Album"
                 android:textColor="@android:color/white"
                 android:singleLine="true"
-                android:textSize="14sp"/>
+                android:textSize="14sp"
+                android:alpha=".7"/>
 
         </LinearLayout>
 

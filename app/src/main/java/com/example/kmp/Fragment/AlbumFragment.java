@@ -1,6 +1,7 @@
 package com.example.kmp.Fragment;
 
 
+import android.app.Dialog;
 import android.content.Context;
 import android.os.Bundle;
 
@@ -23,6 +24,7 @@ import com.example.kmp.Adapter.AlbumAdapter;
 import com.example.kmp.Helper.Helper;
 import com.example.kmp.Activity.MainActivity;
 import com.example.kmp.Modeles.Album;
+import com.example.kmp.Modeles.Musique;
 import com.example.kmp.R;
 import com.example.kmp.ViewModel.KmpViewModel;
 
@@ -69,8 +71,12 @@ public class AlbumFragment extends Fragment {
         model.getAllAlbums().observe(this, new Observer<List<Album>>() {
             @Override
             public void onChanged(List<Album> albums) {
-                AlbumFragment.this.albums = albums;
-                //configureAdapter();
+                if(albums!=null){
+                    if(AlbumFragment.this.albums.size() != albums.size()){
+                        AlbumFragment.this.albums = albums;
+                        configureAdapter();
+                    }
+                }
             }
         });
         albums = model.getAllAlbums().getValue();
@@ -91,10 +97,37 @@ public class AlbumFragment extends Fragment {
     }
 
     @Override
-    public boolean onContextItemSelected(MenuItem item) {
+    public boolean onContextItemSelected(final MenuItem item) {
         if(getUserVisibleHint() && isVisible() && isResumed() && !((MainActivity)getContext()).isFragmentUnder){
-            Album album = albums.get(item.getGroupId());
-            Helper.handleMusicListContextItemSelected(getContext(),item,model.getAllAlbumMusics(getContext(), album).getValue());
+            final Album album = albums.get(item.getGroupId());
+            if(item.getItemId()==R.id.action_supprimer){
+                final Dialog dialog = Helper.confirmSongsSuppresion(getContext());
+                dialog.findViewById(R.id.button_confirmation_validate).setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        dialog.dismiss();
+                        List<Musique> musiqueList = Helper.matchBasicCursorToMusics(Helper.getAlbumMusic(getContext(),album.getIdAlbum()));
+                        if(musiqueList!=null && !musiqueList.isEmpty()){
+                            Musique[] musiques = new Musique[musiqueList.size()];
+                            for(int i=0; i<musiqueList.size();i++)
+                                musiques[i] = musiqueList.get(i);
+                            Helper.deleteMusics(getContext(),musiques);
+                            albums.remove(item.getGroupId());
+                            adapter.notifyItemRemoved(item.getGroupId());
+                        }
+                    }
+                });
+
+                dialog.findViewById(R.id.button_confirmation_cancel).setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        dialog.dismiss();
+                    }
+                });
+
+                dialog.show();
+            }else
+                Helper.handleMusicListContextItemSelected(getContext(),item,model.getAllAlbumMusics(getContext(), album).getValue());
         }
         return super.onContextItemSelected(item);
     }

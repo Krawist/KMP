@@ -51,13 +51,19 @@ public class ArtistFragment extends Fragment {
 
     private void configureModel() {
         model = KmpViewModel.getInstance(getActivity().getApplication(), getContext());
+
         model.getAllArtistes().observe(this, new Observer<List<Artiste>>() {
             @Override
-            public void onChanged(List<Artiste> cursor) {
-                ArtistFragment.this.artistes = cursor;
-                configureAdapter();
+            public void onChanged(List<Artiste> list) {
+                if(list!=null){
+                    if(artistes.size() != list.size()){
+                        artistes = list;
+                        configureAdapter();
+                    }
+                }
             }
         });
+
         artistes = model.getAllArtistes().getValue();
     }
 

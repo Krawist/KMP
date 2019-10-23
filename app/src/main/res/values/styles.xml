@@ -21,6 +21,10 @@
         <item name="colorAccent" />
     </style>
 
+    <style name="TransparentStatusBar" parent="AppTheme.NoActionBar">
+
+    </style>
+
     <style name="WhiteColorAccent" parent="AppTheme">
         <item name="colorAccent" >@android:color/white</item>
     </style>

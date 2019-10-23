@@ -1,13 +1,11 @@
 package com.example.kmp.Adapter;
 
 import android.content.Context;
-import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -15,15 +13,11 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.kmp.Helper.Helper;
 import com.example.kmp.Modeles.Musique;
 import com.example.kmp.R;
-import com.example.kmp.Service.PlayerService;
 import com.example.kmp.ViewModel.KmpViewModel;
 
 import java.util.List;
-import java.util.Random;
 
-import static com.example.kmp.Service.PlayerService.ACTION_PLAY_PLAYLIST;
-
-public class MusicAdapterWithImage extends RecyclerView.Adapter<MusicAdapterWithImage.MusiqueViewHolder> {
+public class DetailsAlbumMusicAdapter extends RecyclerView.Adapter<DetailsAlbumMusicAdapter.MusiqueViewHolder> {
     private final KmpViewModel model;
     private List<Musique> list;
     private Context context;
@@ -32,14 +26,14 @@ public class MusicAdapterWithImage extends RecyclerView.Adapter<MusicAdapterWith
     private  int playingSongPosition;
     private int layoutRes;
 
-    public MusicAdapterWithImage(Context context, List<Musique> list, KmpViewModel model) {
+    public DetailsAlbumMusicAdapter(Context context, List<Musique> list, KmpViewModel model) {
         inflater = LayoutInflater.from(context);
         this.list = list;
         this.context = context;
         this.model = model;
     }
 
-    public MusicAdapterWithImage(Context context, List<Musique> list, KmpViewModel model, Musique playingSong) {
+    public DetailsAlbumMusicAdapter(Context context, List<Musique> list, KmpViewModel model, Musique playingSong) {
         inflater = LayoutInflater.from(context);
         this.list = list;
         this.context = context;
@@ -64,7 +58,7 @@ public class MusicAdapterWithImage extends RecyclerView.Adapter<MusicAdapterWith
     @NonNull
     @Override
     public MusiqueViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        return new MusiqueViewHolder(inflater.inflate(R.layout.simple_item_with_image_black,parent,false));
+        return new MusiqueViewHolder(inflater.inflate(R.layout.album_music_item,parent,false));
     }
 
     @Override
@@ -90,7 +84,7 @@ public class MusicAdapterWithImage extends RecyclerView.Adapter<MusicAdapterWith
         private final TextView titreMusique;
         private final TextView artisteMusique;
         private final TextView dureeMusique;
-        private final ImageView image;
+        private final TextView soundTrackNumber;
         private final ImageView icon;
 
         public MusiqueViewHolder(View itemView){
@@ -98,15 +92,15 @@ public class MusicAdapterWithImage extends RecyclerView.Adapter<MusicAdapterWith
             titreMusique = itemView.findViewById(R.id.textview_simple_item_title);
             artisteMusique = itemView.findViewById(R.id.textview_simple_item_second_text);
             dureeMusique = itemView.findViewById(R.id.textview_simple_item_third_text);
-            image = itemView.findViewById(R.id.imageview_simple_item_image);
+            soundTrackNumber = itemView.findViewById(R.id.textview_album_music_item_song_track_number);
             icon = itemView.findViewById(R.id.imageview_simple_item_is_playing_icon);
         }
 
         public void bindData(final Musique musique, final int position){
             titreMusique.setText(musique.getTitreMusique().trim());
-            artisteMusique.setText(musique.getNomArtiste() + " * " + musique.getTitreAlbum());
+            artisteMusique.setText(musique.getNomArtiste());
             dureeMusique.setText(Helper.formatDurationToString(musique.getDuration()));
-            Helper.loadCircleImage(context,image,musique.getPochette(),40);
+            soundTrackNumber.setText(Helper.getMusicTrackForMusicAlbumDetails(musique));
 
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override

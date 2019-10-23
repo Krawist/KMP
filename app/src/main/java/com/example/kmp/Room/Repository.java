@@ -2,10 +2,7 @@ package com.example.kmp.Room;
 
 import android.app.Application;
 import android.content.Context;
-import android.database.Cursor;
 import android.os.AsyncTask;
-
-import androidx.lifecycle.LiveData;
 
 import com.example.kmp.Helper.Helper;
 import com.example.kmp.Modeles.Album;
@@ -19,11 +16,11 @@ import java.util.List;
 
 public class Repository {
 
-    public KmpDao dao;
+    //public KmpDao dao;
 
     public Repository(Application application){
-        KmpRoomDataBase database = KmpRoomDataBase.getDatabase(application);
-        dao = database.getKmpDao();
+/*        KmpRoomDataBase database = KmpRoomDataBase.getDatabase(application);
+        dao = database.getKmpDao();*/
     }
 
 
@@ -61,20 +58,20 @@ public class Repository {
         return Helper.matchBasicCursorToMusics(Helper.getFavoriteSongs(context, favoriList), pathOfSongAlbumArt);
     }
 
-    public LiveData<List<Favori>> getFavoriteSongsId(){
+/*    public LiveData<List<Favori>> getFavoriteSongsId(){
         return dao.getAllFavoriteSongs();
     }
 
 
-    /** insert request */
+    *//** insert request *//*
     public void insertFavori(Favori favori){
         new InsertFavorisyncTask(dao).execute(favori);
     }
 
-    /** delete request*/
+    *//** delete request*//*
     public void removeFromFavori(Favori favori){
         new DeleteFavoriAsyncTask(dao).execute(favori);
-    }
+    }*/
 
 
     /** AsynTask for insert operation**/
@@ -87,7 +84,7 @@ public class Repository {
 
         @Override
         protected Void doInBackground(Favori... favoris) {
-            dao.insertFavori(favoris[0]);
+            //dao.insertFavori(favoris[0]);
 
             return null;
         }
@@ -102,7 +99,7 @@ public class Repository {
 
         @Override
         protected Void doInBackground(Favori... favoris) {
-            dao.deleteFavori(favoris[0]);
+            //dao.deleteFavori(favoris[0]);
 
             return null;
         }

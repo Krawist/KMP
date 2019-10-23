@@ -155,10 +155,6 @@ public class KmpViewModel extends AndroidViewModel {
             }
             //playingSongPosition.setValue(currentPLayingMusic.getValue().getBookmark());
         }
-
-/*        Intent intent = new Intent(context, PlayerService.class);
-        intent.setAction(PlayerService.ACTION_LOAD);
-        context.startService(intent);*/
     }
 
     public MutableLiveData<ThemeColor> getThemeColor() {
@@ -257,6 +253,16 @@ public class KmpViewModel extends AndroidViewModel {
         return playlistSongs;
     }
 
+    public void loadPlaylistSong(Context context) {
+        if(playlistSongs.getValue()!=null && !playlistSongs.getValue().isEmpty()) {
+            for (Playlist playlist : playlists.getValue()) {
+                playlist.setSongsOfPlaylist(repository.loadAllPlaylistSongs(context, playlist.getIdPlaylist(), pathOfSongAlbumArt));
+            }
+        }
+
+        //new UpdateMusicAsyncTask(context,playlistSongs).execute();
+    }
+
     public void setPlayingList(List<Musique> musiques, Context context){
         listOfSongToPlay.setValue(musiques);
     }
@@ -299,6 +305,7 @@ public class KmpViewModel extends AndroidViewModel {
             allArtistes.setValue(repository.loadAllArtists(context));
             allSongs.setValue(repository.loadAllMusics(context, pathOfSongAlbumArt));
             playlists.setValue(repository.loadPlaylists(context));
+            loadPlaylistSong(context);
             return true;
         }else{
             return false;

@@ -39,6 +39,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:visibility="visible"
+                        android:scaleType="centerCrop"
                         android:transitionName="@string/image_transition_name"/>
 
                     <LinearLayout
@@ -111,15 +112,15 @@
             <include layout="@layout/content_detail_album" />
 
             <com.google.android.material.floatingactionbutton.FloatingActionButton
-                android:id="@+id/floating_button_content_detail_play_all"
+                android:id="@+id/floating_button_content_detail_shuffle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_margin="@dimen/fab_margin"
                 app:srcCompat="@drawable/ic_shuffle_black_24dp"
-                app:backgroundTint="@color/colorPrimaryDark"
+                app:backgroundTint="@color/colorSecondaryDark"
                 android:layout_gravity="bottom|right"
                 android:tint="@color/primaryTextColor"
-                android:visibility="gone"/>
+                android:visibility="visible"/>
 
         </androidx.coordinatorlayout.widget.CoordinatorLayout>
 

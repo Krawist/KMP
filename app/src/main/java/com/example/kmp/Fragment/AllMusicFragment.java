@@ -1,6 +1,8 @@
 package com.example.kmp.Fragment;
 
 
+import android.app.Dialog;
+import android.content.Intent;
 import android.os.Bundle;
 
 import androidx.fragment.app.Fragment;
@@ -13,12 +15,14 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.example.kmp.Activity.Details;
 import com.example.kmp.Activity.MainActivity;
 import com.example.kmp.Adapter.MusicAdapterWithImage;
 import com.example.kmp.Helper.Helper;
 import com.example.kmp.Modeles.Musique;
 import com.example.kmp.Modeles.ThemeColor;
 import com.example.kmp.R;
+import com.example.kmp.Service.PlayerService;
 import com.example.kmp.ViewModel.KmpViewModel;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
@@ -69,8 +73,12 @@ public class AllMusicFragment extends Fragment {
         model.getAllSongs().observe(this, new Observer<List<Musique>>() {
             @Override
             public void onChanged(List<Musique> list) {
-                musiqueList = list;
-                configureAdapter();
+                if(list!=null){
+                    if(musiqueList.size() != list.size()){
+                        musiqueList = list;
+                        configureAdapter();
+                    }
+                }
             }
         });
         musiqueList = model.getAllSongs().getValue();
@@ -80,6 +88,15 @@ public class AllMusicFragment extends Fragment {
             public void onChanged(ThemeColor themeColor) {
                 if(adapter!=null)
                     adapter.notifyDataSetChanged();
+            }
+        });
+
+        model.getCurrentPLayingMusic().observe(this, new Observer<Musique>() {
+            @Override
+            public void onChanged(Musique musique) {
+                if(musique!=null && adapter!=null){
+                    adapter.setPlayingSong(musique);
+                }
             }
         });
     }
@@ -102,9 +119,38 @@ public class AllMusicFragment extends Fragment {
     }
 
     @Override
-    public boolean onContextItemSelected(MenuItem item) {
+    public boolean onContextItemSelected(final MenuItem item) {
         if(getUserVisibleHint()){
-            Helper.handleMusicContextItemSelected(getContext(),item,musiqueList);
+            if(item.getItemId()==R.id.action_music_supprimer){
+                final int position = item.getGroupId();
+                final Dialog dialog = Helper.confirmSongsSuppresion(getContext());
+                dialog.findViewById(R.id.button_confirmation_cancel).setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        dialog.dismiss();
+                    }
+                });
+
+                dialog.findViewById(R.id.button_confirmation_validate).setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        dialog.dismiss();
+                        Helper.deleteMusics(getContext(), musiqueList.get(position));
+                        if(model.getCurrentPLayingMusic()!=null && model.getCurrentPLayingMusic().getValue()!=null && model.getCurrentPLayingMusic().getValue().getIdMusique()==musiqueList.get(position).getIdMusique()){
+                            Intent intent = new Intent(getContext(), PlayerService.class);
+                            intent.setAction(PlayerService.ACTION_SKIP_TO_NEXT);
+                            getContext().startService(intent);
+                        }
+                        musiqueList.remove(position);
+                        adapter.notifyItemRemoved(position);
+                    }
+                });
+
+                dialog.show();
+                return true;
+            }else{
+                return Helper.handleMusicContextItemSelected(getContext(),item,musiqueList, adapter);
+            }
         }
         return super.onContextItemSelected(item);
     }

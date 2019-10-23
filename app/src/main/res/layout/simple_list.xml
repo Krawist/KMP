@@ -4,8 +4,7 @@
     android:layout_height="match_parent"
     xmlns:tools="http://schemas.android.com/tools"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:orientation="vertical"
-    android:background="@android:color/white">
+    android:orientation="vertical">
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerview_simple_list_items"
@@ -27,7 +26,7 @@
         android:layout_height="wrap_content"
         android:layout_margin="@dimen/fab_margin"
         app:srcCompat="@drawable/ic_shuffle_black_24dp"
-        app:backgroundTint="@color/colorPrimaryDark"
+        app:backgroundTint="@color/colorSecondaryDark"
         android:layout_gravity="bottom|right"
         android:tint="@color/primaryTextColor"
         android:layout_alignParentRight="true"

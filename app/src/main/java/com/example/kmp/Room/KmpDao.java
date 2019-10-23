@@ -14,15 +14,4 @@ import java.util.List;
 @Dao
 public interface KmpDao {
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    void insertFavori(Favori favori);
-
-
-    /** delete request**/
-    @Delete
-    void deleteFavori(Favori idFavori);
-
-    /** SELECT REQUEST */
-    @Query("SELECT * FROM favori")
-    LiveData<List<Favori>> getAllFavoriteSongs();
 }

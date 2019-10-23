@@ -18,7 +18,6 @@ import android.util.Log;
 import android.view.ContextMenu;
 import android.view.Display;
 import android.view.LayoutInflater;
-import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
@@ -38,22 +37,26 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.target.BitmapImageViewTarget;
+import com.example.kmp.Activity.Details;
 import com.example.kmp.Activity.MainActivity;
+import com.example.kmp.Adapter.MusicAdapterWithImage;
 import com.example.kmp.Modeles.Album;
 import com.example.kmp.Modeles.Artiste;
-import com.example.kmp.Modeles.Favori;
 import com.example.kmp.Modeles.Musique;
 import com.example.kmp.Modeles.Playlist;
 import com.example.kmp.R;
+import com.example.kmp.Service.PlayerService;
 import com.example.kmp.ViewModel.KmpViewModel;
 
 import java.io.File;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Random;
 import java.util.concurrent.TimeUnit;
+
+import static com.example.kmp.Service.PlayerService.ACTION_PLAY_PLAYLIST;
 
 public class Helper {
 
@@ -265,7 +268,6 @@ public class Helper {
                 Playlist playlist = new Playlist();
                 playlist.setIdPlaylist(cursor.getInt(cursor.getColumnIndex(MediaStore.Audio.Playlists._ID)));
                 playlist.setNomPlaylist(cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Playlists.NAME)));
-
                 playlists.add(playlist);
             }
             cursor.close();
@@ -351,7 +353,7 @@ public class Helper {
         
     }
 
-    private static String getMusicSize(Musique musique) {
+    public static String getMusicSize(Musique musique) {
         DecimalFormat format = new DecimalFormat("#,##");
         int sizeInOctet = musique.getSize();
         int BASE = 1024;
@@ -371,7 +373,7 @@ public class Helper {
             return sizeInOctet+" O";
     }
 
-    private static String getMusicTrack(Musique musique, Context context) {
+    public static String getMusicTrack(Musique musique, Context context) {
         int track = musique.getTrack();
         int MILLE = 1000;
         int DEUX_MILLE = 2000;
@@ -393,6 +395,30 @@ public class Helper {
             return track+"";
     }
 
+    public static String getMusicTrackForMusicAlbumDetails(Musique musique) {
+        int track = musique.getTrack();
+        int MILLE = 1000;
+        int DEUX_MILLE = 2000;
+        int TROIS_MILLE = 3000;
+        int QUATRE_MILLE = 4000;
+        int CINQ_MILLE = 5000;
+
+        if(track>=MILLE && track<DEUX_MILLE){
+            return track%1000+"";
+        }else if(track>=DEUX_MILLE && track<TROIS_MILLE)
+            return track%DEUX_MILLE +"";
+        else if(track>=TROIS_MILLE && track<QUATRE_MILLE)
+            return track%DEUX_MILLE + "";
+        else if(track>=QUATRE_MILLE && track<CINQ_MILLE)
+            return track%DEUX_MILLE + "";
+        else if(track>=CINQ_MILLE && track<6000)
+            return track%DEUX_MILLE + "";
+        else if(track==0)
+            return "-";
+        else
+            return track+"";
+    }
+
     public static void shareMusics(Context context, Musique... musiques){
         Intent shareIntent = new Intent(Intent.ACTION_SEND_MULTIPLE);
         ArrayList<Uri> listUris = new ArrayList<>();
@@ -404,32 +430,18 @@ public class Helper {
         context.startActivity(Intent.createChooser(shareIntent,context.getString(R.string.partager_via)));
     }
 
-    public static void confirmSongsSuppresion(final Context context, final Musique... musiques){
+    public static Dialog confirmSongsSuppresion(final Context context){
 
         final Dialog dialog = new Dialog(context);
         dialog.setContentView(R.layout.dialog_confirmation_layout);
         ((TextView)dialog.findViewById(R.id.textview_confirmation_text)).setText(R.string.supprimer_un_song);
         Button cancelButton = dialog.findViewById(R.id.button_confirmation_cancel);
         cancelButton.setText(R.string.annuler);
-        cancelButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                dialog.dismiss();
-            }
-        });
+        dialog.setCanceledOnTouchOutside(false);
         Button validateButton = dialog.findViewById(R.id.button_confirmation_validate);
         validateButton.setText(R.string.supprimer);
-        validateButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                dialog.dismiss();
-                Helper.deleteMusics(context, musiques);
-            }
-        });
 
-        dialog.setCanceledOnTouchOutside(false);
-
-        dialog.show();
+        return dialog;
     }
 
     public static void deleteMusics(Context context, Musique... musiques) {
@@ -450,10 +462,10 @@ public class Helper {
             file.delete();
 
 
-/*            *//* on efface le fichier du provider*//*
+             /*on efface le fichier du provider*/
             String where = MediaStore.Audio.Media._ID +" = ?";
             String[] args = {musiques[i].getIdMusique()+""};
-            context.getContentResolver().delete(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,where,args);*/
+            context.getContentResolver().delete(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,where,args);
         }
    /*     model.refreshData(context);*/
         dialog.dismiss();
@@ -562,20 +574,37 @@ public class Helper {
     }
 
     public static void loadCircleImage(final Context context, final ImageView image, String imagePath, final int size){
-        Glide.with(context)
-                .load(imagePath)
-                .asBitmap()
-                .error(R.drawable.logo)
-                .centerCrop()
-                .into(new BitmapImageViewTarget(image){
-                    @Override
-                    protected void setResource(Bitmap resource) {
-                        RoundedBitmapDrawable drawable = RoundedBitmapDrawableFactory.create(context.getResources(),
-                                Bitmap.createScaledBitmap(resource,size,size,false));
-                        drawable.setCircular(true);
-                        image.setImageDrawable(drawable);
-                    }
-                });
+        if(imagePath==null || TextUtils.isEmpty(imagePath)){
+            Glide.with(context)
+                    .load(R.drawable.headphones_black_and_white)
+                    .asBitmap()
+                    .error(R.drawable.headphones_black_and_white)
+                    .centerCrop()
+                    .into(new BitmapImageViewTarget(image){
+                        @Override
+                        protected void setResource(Bitmap resource) {
+                            RoundedBitmapDrawable drawable = RoundedBitmapDrawableFactory.create(context.getResources(),
+                                    Bitmap.createScaledBitmap(resource,size,size,false));
+                            drawable.setCircular(true);
+                            image.setImageDrawable(drawable);
+                        }
+                    });
+        }else{
+            Glide.with(context)
+                    .load(imagePath)
+                    .asBitmap()
+                    .error(R.drawable.headphones_black_and_white)
+                    .centerCrop()
+                    .into(new BitmapImageViewTarget(image){
+                        @Override
+                        protected void setResource(Bitmap resource) {
+                            RoundedBitmapDrawable drawable = RoundedBitmapDrawableFactory.create(context.getResources(),
+                                    Bitmap.createScaledBitmap(resource,size,size,false));
+                            drawable.setCircular(true);
+                            image.setImageDrawable(drawable);
+                        }
+                    });
+        }
     }
 
     public static void createAndAddSongToPlaylist(Context context, String plalistName, Musique... musiques) {
@@ -686,7 +715,44 @@ public class Helper {
                 return true;
 
             case R.id.action_music_supprimer:
-                Helper.confirmSongsSuppresion(context, musiqueList.get(position));
+                Helper.confirmSongsSuppresion(context);
+                return true;
+
+            case R.id.action_music_details:
+                Helper.showDetailsOf(context, musiqueList.get(position));
+                return true;
+
+            case R.id.action_music_retirer_des_favoris:
+                KmpViewModel.getInstance(((Activity) context).getApplication(), context).removeFromFavorite(context, musiqueList.get(position).getIdMusique());
+                return true;
+
+            case R.id.action_music_ajouter_aux_favoris:
+                KmpViewModel.getInstance(((Activity) context).getApplication(), context).addToFavorite(context,musiqueList.get(position).getIdMusique());
+                return true;
+        }
+
+        return false;
+    }
+
+
+    public static boolean handleMusicContextItemSelected(final Context context, MenuItem item, final List<Musique> musiqueList, MusicAdapterWithImage adapter) {
+
+        final int position = item.getGroupId();
+        switch (item.getItemId()) {
+            case R.id.action_music_play_after:
+                ((MainActivity) context).playAfterCurrent(musiqueList.get(position));
+                return true;
+
+            case R.id.action_music_add_to_playslist:
+                ((MainActivity) context).addToPlaylist(musiqueList.get(position));
+                return true;
+
+            case R.id.action_music_partager:
+                Helper.shareMusics(context, musiqueList.get(position));
+                return true;
+
+            case R.id.action_music_supprimer:
+
                 return true;
 
             case R.id.action_music_details:
@@ -725,7 +791,7 @@ public class Helper {
             case R.id.action_supprimer:
                 for(int i=0; i<musiqueList.size();i++)
                     musiques[i] = musiqueList.get(i);
-                Helper.confirmSongsSuppresion(context,musiques);
+                Helper.confirmSongsSuppresion(context);
                 return true;
         }
 
@@ -895,11 +961,41 @@ public class Helper {
         display.getSize(size);
         int with = size.x;
 
-        int oneItemWidth = (int)activity.getResources().getDimension(R.dimen.album_item_width);
+        int oneItemWidth = (int)activity.getResources().getDimension(R.dimen.album_item_size);
 
         int numberOfItemInLine = with / oneItemWidth;
 
         return numberOfItemInLine;
 
     }
+
+    public static void startPlaylist(List<Musique> list, Musique musique, int position, boolean isShuffle, KmpViewModel model, Context context){
+        int positionOfStart = position;
+        if(isShuffle){
+            model.setShuffleMode(context,isShuffle);
+            positionOfStart = new Random().nextInt(list.size());
+        }
+
+        model.setPlayingList(list,context);
+        model.getPositionOfSongToPLay().setValue(positionOfStart);
+
+        if(list!=null){
+            model.getCurrentPLayingMusic().setValue(list.get(positionOfStart));
+        }else{
+            model.getCurrentPLayingMusic().setValue(null);
+        }
+
+        if(model.getCurrentPLayingMusic().getValue()==null ||
+                model.getPositionOfSongToPLay().getValue()==null ||
+                model.getListOfSongToPlay().getValue() == null){
+
+            Toast.makeText(context, R.string.une_erreur_est_survenue,Toast.LENGTH_SHORT).show();
+
+        }else {
+            Intent intent = new Intent(context, PlayerService.class);
+            intent.setAction(ACTION_PLAY_PLAYLIST);
+            context.startService(intent);
+        }
+    }
+
 }

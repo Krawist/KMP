@@ -260,7 +260,9 @@ public class PlayerService extends MediaBrowserServiceCompat implements AudioMan
                         break;
 
                     case ACTION_LOAD:
-                        preparePlaying();
+                        if(!isPlaying()){
+                            preparePlaying();
+                        }
                         break;
 
                     case ACTION_QUIT:
@@ -293,14 +295,18 @@ public class PlayerService extends MediaBrowserServiceCompat implements AudioMan
         List<Musique> list = new ArrayList<>(getOriginalPlayList());
         List<Musique> newPlayingQueue = new ArrayList<>();
 
-        newPlayingQueue.add(0,list.get(model.getPositionOfSongToPLay().getValue()));
-        list.remove(model.getPositionOfSongToPLay().getValue());
-        model.getPositionOfSongToPLay().setValue(0);
+        Musique m = list.get(getPlayingSongPosition());
+        newPlayingQueue.add(0,m);
+        list.remove(m);
 
         Collections.shuffle(list);
         newPlayingQueue.addAll(list);
 
         model.getPlayingQueue().setValue(newPlayingQueue);
+    }
+
+    private int getPlayingSongPosition(){
+        return model.getPositionOfSongToPLay().getValue();
     }
 
     private void preparePlaying() {
@@ -431,21 +437,21 @@ public class PlayerService extends MediaBrowserServiceCompat implements AudioMan
                     loadMusic();
                     play();
                 }
+
+                updateMediaSession();
+
+                model.getSongIsPlaying().setValue(true);
+
+                mediaSession.setActive(true);
+
+                initNotification();
+
+                updateNotification();
+
+                registerReceiver(true);
+
+                seekBarPositionRunnable.run();
             }
-
-            updateMediaSession();
-
-            model.getSongIsPlaying().setValue(true);
-
-            mediaSession.setActive(true);
-
-            initNotification();
-
-            updateNotification();
-
-            registerReceiver(true);
-
-            seekBarPositionRunnable.run();
         }
     }
 
@@ -493,11 +499,21 @@ public class PlayerService extends MediaBrowserServiceCompat implements AudioMan
                     .putInt(PREFERENCES_LAST_PLAYED_SONG_POSITION_KEY, getPosition())
                     .apply();
 
-            if(getCurrentSong().getPochette()!=null){
-                Bitmap bitmap = BitmapFactory.decodeFile(getCurrentSong().getPochette());
-                if(bitmap!=null){
+            try {
+                if(getCurrentSong().getPochette()!=null){
+                    Bitmap bitmap = BitmapFactory.decodeFile(getCurrentSong().getPochette());
+                    if(bitmap!=null){
+                        createPalette(bitmap);
+                    }else{
+                        bitmap = BitmapFactory.decodeResource(getResources(),R.drawable.headphones_black_and_white);
+                        createPalette(bitmap);
+                    }
+                }else{
+                    Bitmap bitmap = BitmapFactory.decodeResource(getResources(),R.drawable.headphones_black_and_white);
                     createPalette(bitmap);
                 }
+            }catch (OutOfMemoryError e){
+
             }
         }
     }
@@ -635,9 +651,9 @@ public class PlayerService extends MediaBrowserServiceCompat implements AudioMan
             if(song.getPochette()!=null){
                 bitmap = BitmapFactory.decodeFile(song.getPochette());
                 if(bitmap==null)
-                    bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.logo);
+                    bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.headphones_black_and_white);
             }else{
-                bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.logo);
+                bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.headphones_black_and_white);
             }
 
             final MediaMetadataCompat.Builder metaData = new MediaMetadataCompat.Builder()

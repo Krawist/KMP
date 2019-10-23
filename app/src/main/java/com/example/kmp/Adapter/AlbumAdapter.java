@@ -5,7 +5,6 @@ import android.app.ActivityOptions;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
-import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,6 +13,7 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityOptionsCompat;
+import androidx.core.util.Pair;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
@@ -74,8 +74,7 @@ public class AlbumAdapter extends RecyclerView.Adapter<AlbumAdapter.AlbumViewHol
         private void bindData(final Album album, final int position){
             Glide.with(context)
                     .load(album.getPochette())
-                    .error(R.drawable.logo)
-                    .error(R.drawable.logo)
+                    .error(R.drawable.headphones_black_and_white)
                     .crossFade()
                     .centerCrop()
                     .into(image);

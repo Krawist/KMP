@@ -150,4 +150,13 @@
     <string name="playlist_vide">Cette playlist est vide</string>
     <string name="image_transition_name">image_transition_name</string>
     <string name="toolbar_title_transition_name">toolbar_title</string>
+    <string name="rewind_button_transition">rewind_button_transition</string>
+    <string name="shuffle_button_transition">shuffle_button_transition</string>
+    <string name="like_button_transition">rewind_button_transition</string>
+    <string name="repeat_button_transition">repeat_button_transition</string>
+    <string name="forward_button_transition">forward_button_transition</string>
+    <string name="play_pause_button_transition">play_pause_button_transition</string>
+    <string name="appuyer_e_nouvea_pour_quitter">Appuyer a nouveau pour quitter</string>
+    <string name="home">Home</string>
+    <string name="musiques">Musiques</string>
 </resources>

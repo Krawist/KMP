@@ -71,7 +71,7 @@ public class ArtistDetailFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.detail_artiste_layout, container, false);
 
-        FloatingActionButton fab = view.findViewById(R.id.floating_button_content_detail_play_all);
+        FloatingActionButton fab = view.findViewById(R.id.floating_button_content_detail_shuffle);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

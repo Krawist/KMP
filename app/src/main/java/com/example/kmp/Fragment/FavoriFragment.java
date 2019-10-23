@@ -132,6 +132,15 @@ public class FavoriFragment  extends Fragment {
                 }
             }
         });
+
+        model.getCurrentPLayingMusic().observe(this, new Observer<Musique>() {
+            @Override
+            public void onChanged(Musique musique) {
+                if(musique!=null && favorisAdapter!=null){
+                    favorisAdapter.setPlayingSong(musique);
+                }
+            }
+        });
     }
 
     private void changeVisibility(View recyclerview, int visibilite1, View holderTextView, int visibilite2){
@@ -151,8 +160,6 @@ public class FavoriFragment  extends Fragment {
 
             layoutFavorisPresentation.setVisibility(View.VISIBLE);
 
-        }else{
-           layoutFavorisPresentation.setVisibility(View.GONE);
         }
     }
 

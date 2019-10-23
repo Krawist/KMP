@@ -13,7 +13,8 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme.NoActionBar">
-        <activity android:name=".Activity.Details"></activity>
+        <activity android:name=".Activity.Details"
+            android:theme="@style/TransparentStatusBar"></activity>
 
         <service
             android:name=".Service.PlayerService"
@@ -37,10 +38,12 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
         <activity
             android:name=".Activity.PlayingMusicActivity"
             android:parentActivityName=".Activity.MainActivity"
-            android:theme="@style/AppTheme.NoActionBar" />
+            android:theme="@style/TransparentStatusBar"/>
+
         <activity
             android:name=".Activity.PermissionActivity"
             android:theme="@style/AppTheme.NoActionBar" />
