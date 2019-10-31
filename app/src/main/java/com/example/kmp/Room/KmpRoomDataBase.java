@@ -6,10 +6,7 @@ import androidx.room.Database;
 import androidx.room.Room;
 import androidx.room.RoomDatabase;
 
-import com.example.kmp.Modeles.Favori;
-import com.example.kmp.Modeles.JOIN_MUSIQUE_PLAYLIST;
 import com.example.kmp.Modeles.Musique;
-import com.example.kmp.Modeles.Playlist;
 
 @Database(entities = {Musique.class}, version = 12)
 public abstract class KmpRoomDataBase extends RoomDatabase {

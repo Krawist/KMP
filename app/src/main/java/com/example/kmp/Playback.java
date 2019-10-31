@@ -24,5 +24,5 @@ public interface Playback {
 
     public int getDuration();
 
-    public void updateMediaEffect();
+    public void loadMediaEffects();
 }

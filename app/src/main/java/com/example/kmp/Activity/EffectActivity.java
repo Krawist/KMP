@@ -13,12 +13,14 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.media.AudioManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.view.View;
 import android.widget.Button;
 
 import com.example.kmp.Fragment.EqualizerEffectFrament;
+import com.example.kmp.Fragment.PlaybackParamsFragment;
 import com.example.kmp.Modeles.MusicEffect;
 import com.example.kmp.R;
 import com.example.kmp.Service.PlayerService;
@@ -122,6 +124,9 @@ public class EffectActivity extends AppCompatActivity {
             switch (position){
                 case 0:
                     return new EqualizerEffectFrament();
+
+                case 1:
+                    return new PlaybackParamsFragment();
             }
 
             return null;
@@ -133,6 +138,9 @@ public class EffectActivity extends AppCompatActivity {
             switch (position){
                 case 0:
                     return "Equalizer";
+
+                case 1:
+                    return "Pitch & Speed";
             }
 
             return null;
@@ -140,6 +148,9 @@ public class EffectActivity extends AppCompatActivity {
 
         @Override
         public int getCount() {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                return 2;
+            }
             return 1;
         }
     }

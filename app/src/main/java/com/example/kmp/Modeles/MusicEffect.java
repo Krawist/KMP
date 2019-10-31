@@ -4,26 +4,26 @@ public class MusicEffect {
 
     private boolean isActif = false;
     private short equalizerEffectIndex = 0;
-    private int soundPitch = 0;
-    private int soundSpeed;
+    private float soundPitch = 1.0f;
+    private float soundSpeed = 1.0f;
 
     public boolean isActif() {
         return isActif;
     }
 
-    public int getSoundPitch() {
+    public float getSoundPitch() {
         return soundPitch;
     }
 
-    public void setSoundPitch(int soundPitch) {
+    public void setSoundPitch(float soundPitch) {
         this.soundPitch = soundPitch;
     }
 
-    public int getSoundSpeed() {
+    public float getSoundSpeed() {
         return soundSpeed;
     }
 
-    public void setSoundSpeed(int soundSpeed) {
+    public void setSoundSpeed(float soundSpeed) {
         this.soundSpeed = soundSpeed;
     }
 

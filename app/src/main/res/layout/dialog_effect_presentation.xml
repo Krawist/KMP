@@ -9,12 +9,12 @@
         android:id="@+id/tablayout_dialog_effect_tablayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:tabIndicator="@color/colorAccent"
-        app:tabSelectedTextColor="@color/colorAccent"
-        app:tabTextColor="#23000000"
+        app:tabIndicator="@color/colorPrimary"
+        app:tabSelectedTextColor="@color/colorPrimary"
+        app:tabTextColor="#46000000"
         app:tabGravity="fill"
         app:tabTextAppearance="@style/TextAppearance.AppCompat.Title"
-        app:tabRippleColor="@color/colorAccent" />
+        app:tabRippleColor="@color/colorPrimary" />
 
     <androidx.viewpager.widget.ViewPager
         android:id="@+id/viewpager_dialog_effect_viewpager"

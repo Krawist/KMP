@@ -920,7 +920,7 @@ public class PlayerService extends MediaBrowserServiceCompat implements AudioMan
     }
 
     public void userPreset(short equalizerEffectIndex) {
-        playback.updateMediaEffect();
+        playback.loadMediaEffects();
     }
 
     public class LocalBinder extends Binder {

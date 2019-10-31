@@ -1,16 +1,12 @@
 package com.example.kmp.ViewModel;
 
 import android.Manifest;
-import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.database.Cursor;
 import android.os.AsyncTask;
 import android.preference.PreferenceManager;
-import android.provider.MediaStore;
 import android.support.v4.media.session.PlaybackStateCompat;
 
 import androidx.core.content.ContextCompat;
@@ -18,15 +14,11 @@ import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
-import com.example.kmp.Activity.MainActivity;
-import com.example.kmp.Activity.PermissionActivity;
 import com.example.kmp.Helper.Helper;
 import com.example.kmp.Modeles.Album;
 import com.example.kmp.Modeles.Artiste;
-import com.example.kmp.Modeles.JOIN_MUSIQUE_PLAYLIST;
 import com.example.kmp.Modeles.MusicEffect;
 import com.example.kmp.Modeles.Musique;
-import com.example.kmp.Modeles.Favori;
 import com.example.kmp.Modeles.Playlist;
 import com.example.kmp.Modeles.ThemeColor;
 import com.example.kmp.Room.Repository;
@@ -112,6 +104,11 @@ public class KmpViewModel extends AndroidViewModel {
     }
 
     public void saveMusicEffect(Context context, MusicEffect musicEffect){
+        if(musicEffect.getSoundPitch()==1.0f && musicEffect.getSoundSpeed()==1.0f && musicEffect.getEqualizerEffectIndex()==0){
+            musicEffect.setActif(false);
+        }else{
+            musicEffect.setActif(true);
+        }
         Helper.saveMusicEffect(context,musicEffect);
         this.musicEffect.setValue(musicEffect);
     }

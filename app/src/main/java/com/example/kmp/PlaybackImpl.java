@@ -3,8 +3,10 @@ package com.example.kmp;
 import android.content.Context;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
+import android.media.PlaybackParams;
 import android.media.audiofx.Equalizer;
 import android.net.Uri;
+import android.os.Build;
 import android.widget.Toast;
 
 import com.example.kmp.Helper.Helper;
@@ -31,14 +33,15 @@ public class PlaybackImpl implements Playback, MediaPlayer.OnErrorListener, Medi
         mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
         this.service = service;
         this.context = context;
+
         equalizer = new Equalizer(0,mediaPlayer.getAudioSessionId());
 
-        updateMediaEffect();
+        loadMediaEffects();
 
     }
 
     @Override
-    public void updateMediaEffect() {
+    public void loadMediaEffects() {
         musicEffect = Helper.getMusicEffect(context);
         updateMediaPlayerEffect();
     }
@@ -46,7 +49,24 @@ public class PlaybackImpl implements Playback, MediaPlayer.OnErrorListener, Medi
     private void updateMediaPlayerEffect() {
         equalizer.setEnabled(musicEffect.isActif());
         equalizer.usePreset(musicEffect.getEqualizerEffectIndex());
+        setMediaPlaybackParams();
+    }
 
+    private void setMediaPlaybackParams() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            try{
+                if(isPrepared){
+                        boolean isPlay = mediaPlayer.isPlaying();
+                        mediaPlayer.setPlaybackParams(mediaPlayer.getPlaybackParams().setPitch(musicEffect.getSoundPitch()));
+                        mediaPlayer.setPlaybackParams(mediaPlayer.getPlaybackParams().setSpeed(musicEffect.getSoundSpeed()));
+                        if(!isPlay){
+                            mediaPlayer.pause();
+                        }
+                }
+            }catch (IllegalStateException e){
+
+            }
+        }
     }
 
     public void setLooping(boolean looping){
@@ -102,12 +122,15 @@ public class PlaybackImpl implements Playback, MediaPlayer.OnErrorListener, Medi
         isPrepared = true;
         mediaPlayer.setOnErrorListener(this);
         mediaPlayer.setOnCompletionListener(this);
+
+
     }
 
     @Override
     public boolean play() {
         if(isPrepared){
             mediaPlayer.start();
+            setMediaPlaybackParams();
             return true;
         }
 
