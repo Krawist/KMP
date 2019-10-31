@@ -5,6 +5,8 @@ import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -18,6 +20,7 @@ import com.example.kmp.R;
 import com.example.kmp.Service.PlayerService;
 import com.example.kmp.ViewModel.KmpViewModel;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
@@ -31,12 +34,33 @@ public class MusicAdapterWithImage extends RecyclerView.Adapter<MusicAdapterWith
     private Musique playingSong;
     private  int playingSongPosition;
     private int layoutRes;
+    private boolean isActionMode = false;
+    private List<Musique> checkedMusics = new ArrayList<>();
 
     public MusicAdapterWithImage(Context context, List<Musique> list, KmpViewModel model) {
         inflater = LayoutInflater.from(context);
         this.list = list;
         this.context = context;
         this.model = model;
+    }
+
+    public List<Musique> getCheckedMusics() {
+        return checkedMusics;
+    }
+
+    public void setActionMode(boolean actionMode) {
+        isActionMode = actionMode;
+        for(int i=0; i<getItemCount();i++){
+            notifyItemChanged(i);
+        }
+
+        if(!isActionMode){
+            checkedMusics.clear();
+        }
+    }
+
+    public boolean isActionMode() {
+        return isActionMode;
     }
 
     public MusicAdapterWithImage(Context context, List<Musique> list, KmpViewModel model, Musique playingSong) {
@@ -92,6 +116,8 @@ public class MusicAdapterWithImage extends RecyclerView.Adapter<MusicAdapterWith
         private final TextView dureeMusique;
         private final ImageView image;
         private final ImageView icon;
+        private final CheckBox checkBox;
+
 
         public MusiqueViewHolder(View itemView){
             super(itemView);
@@ -100,32 +126,67 @@ public class MusicAdapterWithImage extends RecyclerView.Adapter<MusicAdapterWith
             dureeMusique = itemView.findViewById(R.id.textview_simple_item_third_text);
             image = itemView.findViewById(R.id.imageview_simple_item_image);
             icon = itemView.findViewById(R.id.imageview_simple_item_is_playing_icon);
+            checkBox = itemView.findViewById(R.id.checkbox);
         }
 
         public void bindData(final Musique musique, final int position){
             titreMusique.setText(musique.getTitreMusique().trim());
             artisteMusique.setText(musique.getNomArtiste() + " * " + musique.getTitreAlbum());
             dureeMusique.setText(Helper.formatDurationToString(musique.getDuration()));
-            Helper.loadCircleImage(context,image,musique.getPochette(),40);
+            Helper.loadCircleImage(context,image,musique.getPochette(),50);
 
-            itemView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    Helper.startPlaylist(list,musique,position,false, model,context);
-                }
-            });
+            if(isActionMode){
+                checkBox.setVisibility(View.VISIBLE);
+                checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                    @Override
+                    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                        if(isChecked){
+                            if(!checkedMusics.contains(musique)){
+                                checkedMusics.add(musique);
+                            }
+                        }else{
+                            if(checkedMusics.contains(musique)){
+                                checkedMusics.remove(musique);
+                            }
+                        }
+                    }
+                });
 
-            Musique currentMusic = model.getCurrentPLayingMusic().getValue();
-            if(currentMusic!=null){
-                if(currentMusic.getIdMusique() == musique.getIdMusique() ){
-                    icon.setVisibility(View.VISIBLE);
-                    playingSongPosition = position;
+                itemView.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        checkBox.setChecked(!checkBox.isChecked());
+                    }
+                });
+
+                if(checkedMusics.contains(musique)){
+                    checkBox.setChecked(true);
                 }else{
-                    icon.setVisibility(View.INVISIBLE);
+                    checkBox.setChecked(false);
                 }
-            }
 
-            Helper.builMusicItemContextMenu(context,itemView,musique,position);
+            }else {
+                itemView.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        Helper.startPlaylist(list,musique,position,false, model,context);
+                    }
+                });
+
+                Musique currentMusic = model.getCurrentPLayingMusic().getValue();
+                if(currentMusic!=null){
+                    if(currentMusic.getIdMusique() == musique.getIdMusique() ){
+                        icon.setVisibility(View.VISIBLE);
+                        playingSongPosition = position;
+                    }else{
+                        icon.setVisibility(View.INVISIBLE);
+                    }
+                }
+
+                Helper.builMusicItemContextMenu(context,itemView,musique,position);
+
+                checkBox.setVisibility(View.GONE);
+            }
         }
     }
 }

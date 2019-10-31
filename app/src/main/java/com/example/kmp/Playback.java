@@ -23,4 +23,6 @@ public interface Playback {
     public void setLooping(boolean bool);
 
     public int getDuration();
+
+    public void updateMediaEffect();
 }

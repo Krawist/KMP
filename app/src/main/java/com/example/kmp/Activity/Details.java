@@ -2,10 +2,14 @@ package com.example.kmp.Activity;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.view.GravityCompat;
 import androidx.lifecycle.Observer;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.transition.Fade;
+import androidx.transition.TransitionManager;
+import androidx.transition.TransitionSet;
 
 import android.app.Activity;
 import android.app.Dialog;
@@ -13,13 +17,19 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.graphics.Typeface;
+import android.media.AudioManager;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.example.kmp.Adapter.DetailsAlbumMusicAdapter;
@@ -33,7 +43,11 @@ import com.example.kmp.R;
 import com.example.kmp.Service.PlayerService;
 import com.example.kmp.ViewModel.KmpViewModel;
 
+import java.util.ArrayList;
 import java.util.List;
+
+import static com.example.kmp.Activity.MainActivity.ACTION_PARTAGER;
+import static com.example.kmp.Activity.MainActivity.ACTION_SUPPRIMER;
 
 public class Details extends AppCompatActivity {
 
@@ -59,6 +73,7 @@ public class Details extends AppCompatActivity {
     private String toolbarTitle;
     private PlayerService service;
     private boolean bound = false;
+    private boolean isActionMode;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -271,6 +286,140 @@ public class Details extends AppCompatActivity {
         super.onStart();
         Intent intent = new Intent(this, PlayerService.class);
         bindService(intent,connection, Context.BIND_AUTO_CREATE);
+    }
+
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+        int id = item.getItemId();
+
+        switch (id){
+            case R.id.action_supprimer:
+                launchActionMode(ACTION_SUPPRIMER);
+                break;
+
+            case R.id.action_rechercher:
+                launchSearch();
+                break;
+
+            case R.id.action_partager:
+                launchActionMode(ACTION_PARTAGER);
+                break;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    private void launchSearch() {
+    }
+
+    private void launchActionMode(String action) {
+        isActionMode = true;
+        adapter.setActionMode(isActionMode);
+        startTransitionForActionMode(action);
+    }
+
+    private void startTransitionForActionMode(final String action) {
+
+        if(isActionMode){
+            findViewById(R.id.appbarlayout).setVisibility(View.GONE);
+
+            LinearLayout linearLayout = new LinearLayout(this);
+            linearLayout.setOrientation(LinearLayout.HORIZONTAL);
+            linearLayout.setGravity(GravityCompat.END);
+
+            Button cancel = new Button(this);
+            cancel.setText(R.string.annuler);
+            cancel.setBackgroundResource(android.R.color.transparent);
+            cancel.setTypeface(Typeface.DEFAULT_BOLD);
+            cancel.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    stopActionMode(action);
+                }
+            });
+
+            linearLayout.addView(cancel);
+
+            Button validate = new Button(this);
+            validate.setText(R.string.supprimer);
+            validate.setBackgroundResource(android.R.color.transparent);
+            validate.setTypeface(Typeface.DEFAULT_BOLD);
+            validate.setOnClickListener(new View.OnClickListener() {
+
+                @Override
+                public void onClick(View v) {
+                    List<Musique> musiqueList = new ArrayList<>();
+                    if(musiqueList!=null && !musiqueList.isEmpty()){
+                        if(ACTION_SUPPRIMER.equalsIgnoreCase(action)){
+                            deleteSong(musiqueList);
+                        }else if(ACTION_PARTAGER.equalsIgnoreCase(action)){
+                            Musique[] m = new Musique[musiqueList.size()];
+                            Helper.shareMusics(Details.this,musiqueList.toArray(m));
+                            stopActionMode(null);
+                        }
+                    }else{
+                        Toast.makeText(Details.this,getString(R.string.veuillez_choisir_au_moins_un_element), Toast.LENGTH_SHORT).show();
+                    }
+
+                }
+            });
+
+            linearLayout.addView(validate);
+
+
+        }else{
+
+            findViewById(R.id.appbarlayout).setVisibility(View.VISIBLE);
+        }
+    }
+
+    private void deleteSong(final List<Musique> musiques) {
+
+        final Dialog dialog = Helper.confirmSongsSuppresion(this, (musiques!=null && musiques.size()>1));
+        dialog.findViewById(R.id.button_confirmation_cancel).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+                stopActionMode(null);
+            }
+        });
+
+        dialog.findViewById(R.id.button_confirmation_validate).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Musique[] m = new Musique[musiques.size()];
+                Helper.deleteMusics(Details.this,musiques.toArray(m));
+                dialog.dismiss();
+                stopActionMode(null);
+                model.refreshData(Details.this);
+            }
+        });
+
+        dialog.show();
+    }
+
+    private void stopActionMode(String action) {
+        isActionMode = false;
+        adapter.setActionMode(isActionMode);
+        startTransitionForActionMode(action);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        setVolumeControlStream(AudioManager.STREAM_MUSIC);
     }
 
     private void initialiseViewsForAlbumInterface() {

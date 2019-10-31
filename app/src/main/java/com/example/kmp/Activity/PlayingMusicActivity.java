@@ -23,6 +23,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentPagerAdapter;
 import androidx.fragment.app.FragmentStatePagerAdapter;
 import androidx.lifecycle.Observer;
 import androidx.palette.graphics.Palette;
@@ -45,14 +46,17 @@ import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
+import com.example.kmp.Fragment.EqualizerEffectFrament;
 import com.example.kmp.Fragment.PlayingMusicPagerFragment;
 import com.example.kmp.Helper.Helper;
+import com.example.kmp.Modeles.MusicEffect;
 import com.example.kmp.Modeles.Musique;
 import com.example.kmp.Modeles.Favori;
 import com.example.kmp.Modeles.ThemeColor;
 import com.example.kmp.R;
 import com.example.kmp.Service.PlayerService;
 import com.example.kmp.ViewModel.KmpViewModel;
+import com.google.android.material.tabs.TabLayout;
 
 import java.util.Collections;
 import java.util.List;
@@ -78,6 +82,7 @@ public class PlayingMusicActivity extends AppCompatActivity {
     private ImageView playButton;
     private ImageView nextButton;
     private ImageView previousButton;
+    private ImageView effectButton;
 
     private static PlayingMusicActivity INSTANCE;
 
@@ -89,6 +94,7 @@ public class PlayingMusicActivity extends AppCompatActivity {
     private RecyclerView recyclerviewPlaylist;
     private PlaylistAdapter adapter;
     private boolean playlistIsShow = false;
+    private int playingSongPosition;
 
     public PlayingMusicActivity(){
 
@@ -109,7 +115,6 @@ public class PlayingMusicActivity extends AppCompatActivity {
         configureToolbar();
 
         addDataToViews();
-
     }
 
     @Override
@@ -119,6 +124,14 @@ public class PlayingMusicActivity extends AppCompatActivity {
             Intent intent = new Intent(this, PlayerService.class);
             bindService(intent,connection, Context.BIND_AUTO_CREATE);
         }
+    }
+
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        unbindService(connection);
+        bound = false;
     }
 
     @Override
@@ -132,12 +145,7 @@ public class PlayingMusicActivity extends AppCompatActivity {
         }
     }
 
-    @Override
-    public void onStop() {
-        super.onStop();
-        unbindService(connection);
-        bound = false;
-    }
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -316,6 +324,16 @@ public class PlayingMusicActivity extends AppCompatActivity {
             @Override
             public void onChanged(Musique musique) {
                 addDataToViews();
+                if(adapter!=null){
+                    adapter.setPlayingSong(musique);
+                }
+            }
+        });
+
+        model.getPlayingQueue().observe(this, new Observer<List<Musique>>() {
+            @Override
+            public void onChanged(List<Musique> musiques) {
+
             }
         });
 
@@ -323,8 +341,17 @@ public class PlayingMusicActivity extends AppCompatActivity {
             @Override
             public void onChanged(ThemeColor themeColor) {
 
-                updateUiColors(themeColor);
+            }
+        });
 
+        model.getMusicEffect().observe(this, new Observer<MusicEffect>() {
+            @Override
+            public void onChanged(MusicEffect musicEffect) {
+                if(musicEffect.isActif()){
+                    effectButton.setImageAlpha(255);
+                }else{
+                    effectButton.setImageAlpha(100);
+                }
             }
         });
 
@@ -377,6 +404,7 @@ public class PlayingMusicActivity extends AppCompatActivity {
             @Override
             public void onChanged(List<Musique> list) {
                 viewPager.getAdapter().notifyDataSetChanged();
+                viewPager.setCurrentItem(model.getPositionOfSongToPLay().getValue());
                 configurePlaylist(list);
             }
         });
@@ -388,21 +416,6 @@ public class PlayingMusicActivity extends AppCompatActivity {
                 tempsEcoule.setText(Helper.formatDurationToString(progress));
             }
         });
-    }
-
-    private void updateUiColors(ThemeColor themeColor) {
-/*        int previousColor = titreMusique.getHighlightColor();
-        ObjectAnimator animation = ObjectAnimator.ofInt(titreMusique, "textColor",previousColor,  themeColor.getBackgroundColor());
-        animation.setEvaluator(new ArgbEvaluator());
-        animation.setDuration(TRANSITION_TIME);
-        animation.start();
-
-        animation = ObjectAnimator.ofInt(artisteMusique,"textColor", previousColor, themeColor.getBackgroundColor());
-        animation.setEvaluator(new ArgbEvaluator());
-        animation.setDuration(TRANSITION_TIME);
-        animation.start();*/
-
-        //seekBar.getProgressDrawable().setColorFilter(themeColor.getBackgroundColor(), PorterDuff.Mode.SRC_ATOP);
     }
 
     private void initialiseView() {
@@ -421,6 +434,7 @@ public class PlayingMusicActivity extends AppCompatActivity {
         rootLayout = findViewById(R.id.layout_playingmusic_root_layout);
         layoutPlaylist = findViewById(R.id.layout_playing_music_playlist);
         recyclerviewPlaylist = findViewById(R.id.recyclerView_playing_music_playlist);
+        effectButton = findViewById(R.id.imagebutton_playing_music_editeffect);
 
         configureViewPager();
 
@@ -524,6 +538,25 @@ public class PlayingMusicActivity extends AppCompatActivity {
                 }
             }
         });
+
+        effectButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                openEffectBoard();
+            }
+        });
+    }
+
+    private void openEffectBoard() {
+        startActivity(new Intent(this,EffectActivity.class));
+    }
+
+    public void setEffectPreset(MusicEffect musicEffect){
+        model.saveMusicEffect(this,musicEffect);
+
+        if(bound){
+            service.userPreset(musicEffect.getEqualizerEffectIndex());
+        }
     }
 
     private void configureViewPager() {
@@ -539,14 +572,7 @@ public class PlayingMusicActivity extends AppCompatActivity {
 
                 @Override
                 public void onPageSelected(int position) {
-                    model.getPositionOfSongToPLay().setValue(position);
-                    model.getCurrentPLayingMusic().setValue(model.getPlayingQueue().getValue().get(position));
-                    Intent intent = new Intent(PlayingMusicActivity.this,PlayerService.class);
-                    intent.setAction(ACTION_PLAY_PLAYLIST);
-                    startService(intent);
-/*                    Intent intent = new Intent(PlayingMusicActivity.this, PlayerService.class);
-                    intent.setAction(ACTION_PLAY_PLAYLIST);
-                    startService(intent);*/
+                    Helper.startPlaylist(model.getPlayingQueue().getValue(),model.getPlayingQueue().getValue().get(position),position,false,model,PlayingMusicActivity.this);
                 }
 
                 @Override
@@ -601,14 +627,15 @@ public class PlayingMusicActivity extends AppCompatActivity {
     private class PlaylistAdapter extends RecyclerView.Adapter<PlaylistViewHolder> {
 
         List<Musique> playlist;
-
         LayoutInflater inflater;
         private final Context context;
+        private Musique playingSong;
 
         public PlaylistAdapter(){
             context = PlayingMusicActivity.this;
             inflater = LayoutInflater.from(context);
             playlist = model.getPlayingQueue().getValue();
+            playingSong = model.getCurrentPLayingMusic().getValue();
         }
 
         @Override
@@ -631,6 +658,20 @@ public class PlayingMusicActivity extends AppCompatActivity {
                 return 0;
         }
 
+        public void setPlayingSong(Musique playingSong){
+            this.playingSong = playingSong;
+            Musique musique = null;
+            for(int i=0; i<playlist.size(); i++){
+                musique= playlist.get(i);
+                if(musique.getIdMusique()==playingSong.getIdMusique()){
+                    notifyItemChanged(playingSongPosition);
+                    playingSongPosition = i;
+                    notifyItemChanged(playingSongPosition);
+                    break;
+                }
+            }
+        }
+
         public void setList(List<Musique> playlist) {
             this.playlist = playlist;
             notifyDataSetChanged();
@@ -640,22 +681,34 @@ public class PlayingMusicActivity extends AppCompatActivity {
     public class PlaylistViewHolder extends RecyclerView.ViewHolder{
 
         private final TextView titreMusique;
-        private final TextView artisteAlbum;
+        private final TextView artisteMusique;
         private final TextView dureeMusique;
         private final ImageView image;
+        private final ImageView icon;
 
         public PlaylistViewHolder(View itemView){
             super(itemView);
             titreMusique = itemView.findViewById(R.id.textview_simple_item_title);
-            artisteAlbum = itemView.findViewById(R.id.textview_simple_item_second_text);
+            artisteMusique = itemView.findViewById(R.id.textview_simple_item_second_text);
             dureeMusique = itemView.findViewById(R.id.textview_simple_item_third_text);
             image = itemView.findViewById(R.id.imageview_simple_item_image);
+            icon = itemView.findViewById(R.id.imageview_simple_item_is_playing_icon);
         }
 
         public void bindData(final Musique musique, final int position){
             titreMusique.setText(musique.getTitreMusique());
-            artisteAlbum.setText(musique.getTitreAlbum());
+            artisteMusique.setText(musique.getTitreAlbum());
             dureeMusique.setText(Helper.formatDurationToString(musique.getDuration()));
+
+            Musique currentMusic = model.getCurrentPLayingMusic().getValue();
+            if(currentMusic!=null){
+                if(currentMusic.getIdMusique() == musique.getIdMusique() ){
+                    icon.setVisibility(View.VISIBLE);
+                    playingSongPosition = position;
+                }else{
+                    icon.setVisibility(View.INVISIBLE);
+                }
+            }
 
             Helper.loadCircleImage(PlayingMusicActivity.this,image,musique.getPochette(),40);
 

@@ -8,6 +8,8 @@ import android.os.Build;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -22,13 +24,15 @@ import com.example.kmp.Helper.Helper;
 import com.example.kmp.Modeles.Album;
 import com.example.kmp.R;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class AlbumAdapter extends RecyclerView.Adapter<AlbumAdapter.AlbumViewHolder>{
 
     private Context context;
     private List<Album> albums;
-
+    private boolean isActionMode;
+    private List<Album> checkedAlbums = new ArrayList<>();
     public AlbumAdapter(Context context, List<Album> albums){
         this.context = context;
         this.albums = albums;
@@ -38,6 +42,25 @@ public class AlbumAdapter extends RecyclerView.Adapter<AlbumAdapter.AlbumViewHol
     @Override
     public AlbumViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         return new AlbumViewHolder(LayoutInflater.from(parent.getContext()).inflate(R.layout.album_item,parent,false));
+    }
+
+    public boolean isActionMode() {
+        return isActionMode;
+    }
+
+    public void setActionMode(boolean actionMode) {
+        isActionMode = actionMode;
+        for (int i=0; i<albums.size(); i++){
+            notifyItemChanged(i);
+        }
+
+        if(!isActionMode){
+            checkedAlbums.clear();
+        }
+    }
+
+    public List<Album> getCheckedAlbums() {
+        return checkedAlbums;
     }
 
     @Override
@@ -63,12 +86,14 @@ public class AlbumAdapter extends RecyclerView.Adapter<AlbumAdapter.AlbumViewHol
         private final ImageView image;
         private final TextView nomArtiste;
         private final TextView nomAlbum;
+        private final CheckBox checkBox;
 
         public AlbumViewHolder(View itemView){
             super(itemView);
             image = itemView.findViewById(R.id.imageview_album_item_image);
             nomArtiste = itemView.findViewById(R.id.textview_album_item_artiste_album);
             nomAlbum = itemView.findViewById(R.id.textview_album_item_titre_album);
+            checkBox = itemView.findViewById(R.id.checkbox);
         }
 
         private void bindData(final Album album, final int position){
@@ -82,25 +107,61 @@ public class AlbumAdapter extends RecyclerView.Adapter<AlbumAdapter.AlbumViewHol
             nomAlbum.setText(album.getTitreAlbum());
             nomArtiste.setText(album.getNomArtiste());
 
-            itemView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    Intent intent = new Intent(context, Details.class);
-                    intent.putExtra(Details.DETAIL_OF_WHAT_TO_SHOW,Details.ALBUM);
-                    intent.putExtra(Details.ALBUM,album);
-                    if(Build.VERSION.SDK_INT>=21){
-                        Pair<View, String> p1 = Pair.create((View)image,image.getTransitionName());
-                        Pair<View, String> p2 = Pair.create((View)nomAlbum,nomAlbum.getTransitionName());
-                        ActivityOptionsCompat options = ActivityOptionsCompat.makeSceneTransitionAnimation((Activity)context,image,image.getTransitionName());
-                        context.startActivity(intent,options.toBundle());
-                    }else{
-                        context.startActivity(intent);
+            if(isActionMode()){
+
+                checkBox.setVisibility(View.VISIBLE);
+
+                checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                    @Override
+                    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                        if(isChecked){
+                            if(!checkedAlbums.contains(album)){
+                                checkedAlbums.add(album);
+                            }
+                        }else{
+                            if(checkedAlbums.contains(album)){
+                                checkedAlbums.remove(album);
+                            }
+                        }
                     }
+                });
 
+                itemView.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        checkBox.setChecked(!checkBox.isChecked());
+                    }
+                });
+
+                if(checkedAlbums.contains(album)){
+                    checkBox.setChecked(true);
+                }else{
+                    checkBox.setChecked(false);
                 }
-            });
 
-            Helper.buildListMusicContextMenu(context,itemView,position);
+            }else{
+                itemView.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        Intent intent = new Intent(context, Details.class);
+                        intent.putExtra(Details.DETAIL_OF_WHAT_TO_SHOW,Details.ALBUM);
+                        intent.putExtra(Details.ALBUM,album);
+                        if(Build.VERSION.SDK_INT>=21){
+                            Pair<View, String> p1 = Pair.create((View)image,image.getTransitionName());
+                            Pair<View, String> p2 = Pair.create((View)nomAlbum,nomAlbum.getTransitionName());
+                            ActivityOptionsCompat options = ActivityOptionsCompat.makeSceneTransitionAnimation((Activity)context,image,image.getTransitionName());
+                            context.startActivity(intent,options.toBundle());
+                        }else{
+                            context.startActivity(intent);
+                        }
+
+                    }
+                });
+
+                Helper.buildListMusicContextMenu(context,itemView,position);
+
+                checkBox.setVisibility(View.GONE);
+            }
         }
     }
 }

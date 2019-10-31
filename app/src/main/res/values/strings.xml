@@ -159,4 +159,8 @@
     <string name="appuyer_e_nouvea_pour_quitter">Appuyer a nouveau pour quitter</string>
     <string name="home">Home</string>
     <string name="musiques">Musiques</string>
+    <string name="rechercher">Rechercher</string>
+    <string name="supprimer_plusieurs_songs">Voulez vous vraiment supprimer ces morceaux</string>
+    <string name="veuillez_choisir_au_moins_un_element">Veuillez choisir au moins un élément</string>
+    <string name="veuillez_choisir_un_song">Veuillez choisir un song à jouer</string>
 </resources>

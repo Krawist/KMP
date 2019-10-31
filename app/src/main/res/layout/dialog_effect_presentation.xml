@@ -13,7 +13,7 @@
         app:tabSelectedTextColor="@color/colorAccent"
         app:tabTextColor="#23000000"
         app:tabGravity="fill"
-        app:tabTextAppearance="@style/TextAppearance.AppCompat.Medium"
+        app:tabTextAppearance="@style/TextAppearance.AppCompat.Title"
         app:tabRippleColor="@color/colorAccent" />
 
     <androidx.viewpager.widget.ViewPager
@@ -33,16 +33,18 @@
             android:text="@string/annuler"
             android:layout_toLeftOf="@id/button_dialog_positive_action"
             android:background="@android:color/transparent"
-            android:textStyle="bold"/>
+            android:textStyle="bold"
+            android:textColor="@color/colorAccent"/>
 
         <Button
             android:id="@+id/button_dialog_positive_action"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/supprimer"
             android:layout_alignParentRight="true"
             android:background="@android:color/transparent"
-            android:textStyle="bold"/>
+            android:text="@string/valider"
+            android:textStyle="bold"
+            android:textColor="@color/colorAccent"/>
 
     </RelativeLayout>
 

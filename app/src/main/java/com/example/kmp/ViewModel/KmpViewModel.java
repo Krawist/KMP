@@ -24,6 +24,7 @@ import com.example.kmp.Helper.Helper;
 import com.example.kmp.Modeles.Album;
 import com.example.kmp.Modeles.Artiste;
 import com.example.kmp.Modeles.JOIN_MUSIQUE_PLAYLIST;
+import com.example.kmp.Modeles.MusicEffect;
 import com.example.kmp.Modeles.Musique;
 import com.example.kmp.Modeles.Favori;
 import com.example.kmp.Modeles.Playlist;
@@ -58,6 +59,7 @@ public class KmpViewModel extends AndroidViewModel {
     private MutableLiveData<List<Musique>> playlistSongs;
     private MutableLiveData<List<Musique>> playingQueue;
     private MutableLiveData<ThemeColor> themeColor;
+    private MutableLiveData<MusicEffect> musicEffect;
 
     private MutableLiveData<List<Integer>> favoriteSongsId;
 
@@ -88,6 +90,7 @@ public class KmpViewModel extends AndroidViewModel {
         allAlbumMusics = new MutableLiveData<>();
         pathOfSongAlbumArt = new HashMap();
         favoriteSongsId = new MutableLiveData<>();
+        musicEffect = new MutableLiveData<>();
 
         loopingMode.setValue(PreferenceManager.getDefaultSharedPreferences(context)
             .getInt(PlayerService.PREFERNCE_REPEAT_MODE_KEY, PlaybackStateCompat.REPEAT_MODE_NONE));
@@ -95,11 +98,22 @@ public class KmpViewModel extends AndroidViewModel {
         shuffleMode.setValue(PreferenceManager.getDefaultSharedPreferences(context)
             .getBoolean(PlayerService.PREFERNCE_SHUFFLE_MODE_KEY, false));
 
+        musicEffect.setValue(Helper.getMusicEffect(context));
+
         songIsPlaying.setValue(false);
 
         loadLastComponent(context);
 
         refreshData(context);
+    }
+
+    public MutableLiveData<MusicEffect> getMusicEffect() {
+        return musicEffect;
+    }
+
+    public void saveMusicEffect(Context context, MusicEffect musicEffect){
+        Helper.saveMusicEffect(context,musicEffect);
+        this.musicEffect.setValue(musicEffect);
     }
 
     public LiveData<List<Integer>> getFavoriteSongsId() {

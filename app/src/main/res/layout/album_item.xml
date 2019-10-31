@@ -6,45 +6,51 @@
     android:foreground="?android:attr/selectableItemBackground"
     android:layout_margin="1dp">
 
-        <ImageView
-            android:id="@+id/imageview_album_item_image"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="@color/colorPrimary"
-            android:scaleType="centerCrop"
-            android:transitionName="@string/image_transition_name"/>
+    <CheckBox
+        android:id="@+id/checkbox"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"/>
 
-        <LinearLayout
+    <ImageView
+        android:id="@+id/imageview_album_item_image"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/colorPrimary"
+        android:scaleType="centerCrop"
+        android:transitionName="@string/image_transition_name"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="@drawable/background_gradient_black_to_transparent"
+        android:layout_alignParentBottom="true"
+        android:padding="@dimen/size_8dp"
+        android:visibility="visible"
+        android:layout_gravity="bottom">
+
+        <TextView
+            android:id="@+id/textview_album_item_titre_album"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:background="@drawable/background_gradient_black_to_transparent"
-            android:layout_alignParentBottom="true"
-            android:padding="@dimen/size_8dp"
-            android:visibility="visible"
-            android:layout_gravity="bottom">
+            android:text="Titre Album"
+            android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle1"
+            android:textColor="@android:color/white"
+            android:textStyle="bold"
+            android:singleLine="true"
+            android:transitionName="@string/toolbar_title_transition_name"/>
 
-            <TextView
-                android:id="@+id/textview_album_item_titre_album"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Titre Album"
-                android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle1"
-                android:textColor="@android:color/white"
-                android:textStyle="bold"
-                android:singleLine="true"
-                android:transitionName="@string/toolbar_title_transition_name"/>
+        <TextView
+            android:id="@+id/textview_album_item_artiste_album"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Artiste Album"
+            android:textColor="@android:color/white"
+            android:singleLine="true"
+            android:textSize="14sp"
+            android:alpha=".7"/>
 
-            <TextView
-                android:id="@+id/textview_album_item_artiste_album"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Artiste Album"
-                android:textColor="@android:color/white"
-                android:singleLine="true"
-                android:textSize="14sp"
-                android:alpha=".7"/>
-
-        </LinearLayout>
+    </LinearLayout>
 
 </androidx.cardview.widget.CardView>

@@ -1,30 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout
+<LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
-
-    <ImageView
-        android:id="@+id/imageview_home_background"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:src="@color/colorAccent"
-        android:visibility="gone"/>
-
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="#20000000"
-        android:visibility="gone"/>
-
-    <RelativeLayout
-        android:layout_height="match_parent"
-        android:layout_width="match_parent"
-        tools:context=".Activity.MainActivity"
-        android:orientation="vertical"
-        android:id="@+id/rootlayout">
+    android:layout_height="match_parent"
+    tools:context=".Activity.MainActivity"
+    android:id="@+id/rootlayout">
 
         <com.google.android.material.appbar.AppBarLayout
             android:id="@+id/appbarlayout"
@@ -50,13 +33,128 @@
 
         </com.google.android.material.appbar.AppBarLayout>
 
-        <androidx.viewpager.widget.ViewPager
-            android:id="@+id/viewpager_content_main"
+        <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_below="@id/appbarlayout"
-            android:layout_above="@id/nav_view"
-            android:layout_alignWithParentIfMissing="true"/>
+            android:layout_height="0dp"
+            android:layout_weight="1">
+
+            <androidx.viewpager.widget.ViewPager
+                android:id="@+id/viewpager_content_main"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+
+
+            <androidx.coordinatorlayout.widget.CoordinatorLayout
+                android:id="@+id/layout_control"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_alignParentBottom="true"
+                android:layout_margin="@dimen/fab_margin"
+                android:elevation="@dimen/size_4dp">
+
+                <androidx.cardview.widget.CardView
+                    android:id="@+id/floatingview"
+                    android:layout_width="56dp"
+                    android:layout_height="56dp"
+                    android:backgroundTint="@color/colorPrimary"
+                    app:cardCornerRadius="29dp"
+                    android:background="@android:color/black"
+                    android:layout_alignParentEnd="true"
+                    android:layout_gravity="right|end">
+
+                    <ImageView
+                        android:src="@drawable/logo"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:id="@+id/imageview_playing_music_image"
+                        android:scaleType="centerCrop"/>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:background="#3E000000"/>
+
+                    <ImageView
+                        android:transitionName="@string/play_pause_button_transition"
+                        android:id="@+id/imageview_playbutton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        app:srcCompat="@drawable/ic_play_arrow_black_24dp"
+                        android:tint="@android:color/white"/>
+
+                </androidx.cardview.widget.CardView>
+
+                <LinearLayout
+                    android:id="@+id/layout_activity_main_control"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_centerVertical="true"
+                    android:layout_alignParentEnd="true"
+                    android:layout_marginRight="30dp"
+                    android:background="@drawable/music_control_background"
+                    android:gravity="center_vertical"
+                    android:paddingRight="26dp"
+                    android:paddingLeft="@dimen/size_8dp"
+                    android:layout_gravity="center_vertical">
+
+                    <ImageView
+                        android:id="@+id/imageview_activity_main_rewind_button"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        app:srcCompat="@drawable/ic_fast_rewind_black_24dp"
+                        android:tint="@android:color/white"
+                        android:padding="@dimen/size_4dp"
+                        android:transitionName="@string/rewind_button_transition"
+                        android:foreground="?android:attr/selectableItemBackground"/>
+
+                    <ImageView
+                        android:transitionName="@string/shuffle_button_transition"
+                        android:id="@+id/imageview_activity_main_shuffle_button"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        app:srcCompat="@drawable/ic_shuffle_black_24dp"
+                        android:tint="@android:color/white"
+                        android:padding="@dimen/size_4dp"
+                        android:foreground="?android:attr/selectableItemBackground"/>
+
+                    <ImageView
+                        android:transitionName="@string/like_button_transition"
+                        android:id="@+id/imageview_activity_main_like_button"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        app:srcCompat="@drawable/ic_favorite_border_black_24dp"
+                        android:tint="@android:color/white"
+                        android:padding="@dimen/size_4dp"
+                        android:foreground="?android:attr/selectableItemBackground"/>
+
+                    <ImageView
+                        android:transitionName="@string/repeat_button_transition"
+                        android:id="@+id/imageview_activity_main_repeat_button"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        app:srcCompat="@drawable/ic_repeat_black_24dp"
+                        android:tint="@android:color/white"
+                        android:padding="@dimen/size_4dp"
+                        android:foreground="?android:attr/selectableItemBackground"/>
+
+                    <ImageView
+                        android:transitionName="@string/forward_button_transition"
+                        android:id="@+id/imageview_activity_main_forward_button"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        app:srcCompat="@drawable/ic_fast_forward_black_24dp"
+                        android:tint="@android:color/white"
+                        android:padding="@dimen/size_4dp"
+                        android:foreground="?android:attr/selectableItemBackground"/>
+
+                </LinearLayout>
+
+            </androidx.coordinatorlayout.widget.CoordinatorLayout>
+
+        </RelativeLayout>
 
         <com.google.android.material.bottomnavigation.BottomNavigationView
             app:elevation="4dp"
@@ -70,117 +168,4 @@
             android:saveEnabled="true"
             app:labelVisibilityMode="labeled"/>
 
-        <androidx.coordinatorlayout.widget.CoordinatorLayout
-            android:id="@+id/layout_control"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentEnd="true"
-            android:layout_alignWithParentIfMissing="true"
-            android:layout_above="@id/nav_view"
-            android:layout_margin="@dimen/fab_margin"
-            android:elevation="@dimen/size_4dp">
-
-            <androidx.cardview.widget.CardView
-                android:id="@+id/floatingview"
-                android:layout_width="56dp"
-                android:layout_height="56dp"
-                android:backgroundTint="@color/colorPrimary"
-                app:cardCornerRadius="29dp"
-                android:background="@android:color/black"
-                android:layout_alignParentEnd="true"
-                android:layout_gravity="right|end">
-
-                <ImageView
-                    android:src="@drawable/logo"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:id="@+id/imageview_playing_music_image"
-                    android:scaleType="centerCrop"/>
-
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:background="#3E000000"/>
-
-                <ImageView
-                    android:transitionName="@string/play_pause_button_transition"
-                    android:id="@+id/imageview_playbutton"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    app:srcCompat="@drawable/ic_play_arrow_black_24dp"
-                    android:tint="@android:color/white"/>
-
-            </androidx.cardview.widget.CardView>
-
-            <LinearLayout
-                android:id="@+id/layout_activity_main_control"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_centerVertical="true"
-                android:layout_alignParentEnd="true"
-                android:layout_marginRight="30dp"
-                android:background="@drawable/music_control_background"
-                android:gravity="center_vertical"
-                android:paddingRight="26dp"
-                android:paddingLeft="@dimen/size_8dp"
-                android:layout_gravity="center_vertical">
-
-                <ImageView
-                    android:id="@+id/imageview_activity_main_rewind_button"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    app:srcCompat="@drawable/ic_fast_rewind_black_24dp"
-                    android:tint="@android:color/white"
-                    android:padding="@dimen/size_4dp"
-                    android:transitionName="@string/rewind_button_transition"
-                    android:foreground="?android:attr/selectableItemBackground"/>
-
-                <ImageView
-                    android:transitionName="@string/shuffle_button_transition"
-                    android:id="@+id/imageview_activity_main_shuffle_button"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    app:srcCompat="@drawable/ic_shuffle_black_24dp"
-                    android:tint="@android:color/white"
-                    android:padding="@dimen/size_4dp"
-                    android:foreground="?android:attr/selectableItemBackground"/>
-
-                <ImageView
-                    android:transitionName="@string/like_button_transition"
-                    android:id="@+id/imageview_activity_main_like_button"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    app:srcCompat="@drawable/ic_favorite_border_black_24dp"
-                    android:tint="@android:color/white"
-                    android:padding="@dimen/size_4dp"
-                    android:foreground="?android:attr/selectableItemBackground"/>
-
-                <ImageView
-                    android:transitionName="@string/repeat_button_transition"
-                    android:id="@+id/imageview_activity_main_repeat_button"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    app:srcCompat="@drawable/ic_repeat_black_24dp"
-                    android:tint="@android:color/white"
-                    android:padding="@dimen/size_4dp"
-                    android:foreground="?android:attr/selectableItemBackground"/>
-
-                <ImageView
-                    android:transitionName="@string/forward_button_transition"
-                    android:id="@+id/imageview_activity_main_forward_button"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    app:srcCompat="@drawable/ic_fast_forward_black_24dp"
-                    android:tint="@android:color/white"
-                    android:padding="@dimen/size_4dp"
-                    android:foreground="?android:attr/selectableItemBackground"/>
-
-            </LinearLayout>
-
-        </androidx.coordinatorlayout.widget.CoordinatorLayout>
-
-    </RelativeLayout>
-
-</RelativeLayout>
+</LinearLayout>

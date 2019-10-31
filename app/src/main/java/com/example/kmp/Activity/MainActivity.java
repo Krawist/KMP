@@ -3,18 +3,18 @@ package com.example.kmp.Activity;
 import android.Manifest;
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
+import android.app.Dialog;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.graphics.PorterDuff;
+import android.graphics.Typeface;
 import android.media.AudioManager;
-import android.media.Image;
 import android.os.Build;
 import android.os.Bundle;
 
-import com.bumptech.glide.Glide;
 import com.example.kmp.Fragment.AlbumFragment;
 import com.example.kmp.Fragment.AllMusicFragment;
 import com.example.kmp.Fragment.ArtistDetailFragment;
@@ -42,14 +42,16 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.app.ActivityOptionsCompat;
 import androidx.core.util.Pair;
 import androidx.core.view.GestureDetectorCompat;
+import androidx.core.view.GravityCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentPagerAdapter;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.Observer;
 import androidx.transition.ChangeBounds;
+import androidx.transition.Fade;
 import androidx.transition.Transition;
-import androidx.transition.TransitionInflater;
+import androidx.transition.TransitionManager;
 import androidx.transition.TransitionSet;
 import androidx.viewpager.widget.ViewPager;
 
@@ -63,12 +65,15 @@ import android.view.MotionEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.view.animation.LinearInterpolator;
+import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.RelativeLayout;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
@@ -77,6 +82,8 @@ import static com.example.kmp.Service.PlayerService.ACTION_PLAY_PLAYLIST;
 public class MainActivity extends AppCompatActivity {
 
     public static final int READ_EXTERNAL_STORAGE_REQUEST_CODE = 10;
+    public static final String ACTION_SUPPRIMER = "ACTION_SUPPRIMER";
+    public static final String ACTION_PARTAGER = "ACTION_PARTAGER";
     private ViewPager viewPager;
     private KmpViewModel model;
 
@@ -94,7 +101,7 @@ public class MainActivity extends AppCompatActivity {
     int initialY;
     float initialTouchX;
     float initialTouchY;
-    private RelativeLayout rootLayout;
+    private LinearLayout rootLayout;
     private WindowManager.LayoutParams params;
     private long lastTouchMoment = System.currentTimeMillis();
     private boolean transitionFinished;
@@ -106,6 +113,13 @@ public class MainActivity extends AppCompatActivity {
     private ImageView repeatButton;
     private boolean userHaveNavigate = true;
     private CoordinatorLayout controlLayout;
+    private int currentItemPosition;
+    private ViewPagerAdapter viewPagerAdapter;
+    private boolean isActionMode = false;
+    private FavoriFragment favorisFragment;
+    private AllMusicFragment allMusicFragment;
+    private AlbumFragment albumFragment;
+    private ArtistFragment artistFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -130,10 +144,16 @@ public class MainActivity extends AppCompatActivity {
         gestureDetectorCompat = new GestureDetectorCompat(this,swipeListener);
     }
 
-    @Override
+/*    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        //getMenuInflater().inflate(R.menu.menu_main, menu);
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+
+        if(viewPager.getCurrentItem()==0){
+            menu.findItem(R.id.action_supprimer).setVisible(false);
+            menu.findItem(R.id.action_partager).setVisible(false);
+        }
+
         return true;
     }
 
@@ -144,12 +164,182 @@ public class MainActivity extends AppCompatActivity {
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
+        switch (id){
+            case R.id.action_supprimer:
+                launchActionMode(viewPager.getCurrentItem(), ACTION_SUPPRIMER);
+                break;
+
+            case R.id.action_rechercher:
+                launchSearch();
+                break;
+
+            case R.id.action_partager:
+                launchActionMode(viewPager.getCurrentItem(), ACTION_PARTAGER);
+                break;
         }
 
         return super.onOptionsItemSelected(item);
+    }*/
+
+    private void launchActionMode(int currentItem, String action) {
+        currentItemPosition = currentItem;
+        isActionMode = true;
+        switch (currentItem){
+            case 1:
+                if(allMusicFragment!=null){
+                    allMusicFragment.getAdapter().setActionMode(isActionMode);
+                }
+                break;
+
+            case 2:
+                if(albumFragment!=null){
+                    albumFragment.getAdapter().setActionMode(isActionMode);
+                }
+                break;
+
+            case 3:
+                if(artistFragment!=null){
+                    artistFragment.getAdapter().setActionMode(isActionMode);
+                }
+                break;
+        }
+        startTransitionForActionMode(action);
+    }
+
+    private void startTransitionForActionMode(final String action) {
+        TransitionSet transition = new TransitionSet();
+        transition.addTransition(new Fade(Fade.IN|Fade.OUT));
+        TransitionManager.beginDelayedTransition(rootLayout,transition);
+
+        if(isActionMode){
+            rootLayout.removeView(bottomNavigationView);
+            controlLayout.setVisibility(View.GONE);
+            findViewById(R.id.appbarlayout).setVisibility(View.GONE);
+
+            LinearLayout linearLayout = new LinearLayout(this);
+            linearLayout.setOrientation(LinearLayout.HORIZONTAL);
+            linearLayout.setGravity(GravityCompat.END);
+
+            Button cancel = new Button(this);
+            cancel.setText(R.string.annuler);
+            cancel.setBackgroundResource(android.R.color.transparent);
+            cancel.setTypeface(Typeface.DEFAULT_BOLD);
+            cancel.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    stopActionMode(action);
+                }
+            });
+
+            linearLayout.addView(cancel);
+
+            Button validate = new Button(this);
+            validate.setText(R.string.supprimer);
+            validate.setBackgroundResource(android.R.color.transparent);
+            validate.setTypeface(Typeface.DEFAULT_BOLD);
+            validate.setOnClickListener(new View.OnClickListener() {
+
+                @Override
+                public void onClick(View v) {
+                    List<Musique> musiqueList = new ArrayList<>();
+                    switch (currentItemPosition){
+                        case 1:
+                            musiqueList = allMusicFragment.getAdapter().getCheckedMusics();
+                            break;
+
+                        case 2:
+                            musiqueList = new ArrayList<>();
+                            for(Album album: albumFragment.getAdapter().getCheckedAlbums()){
+                                musiqueList.addAll(Helper.matchBasicCursorToMusics(Helper.getAlbumMusic(MainActivity.this,album.getIdAlbum())));
+                            }
+                            break;
+
+                        case 3:
+                            musiqueList = new ArrayList<>();
+                            for (Artiste artiste: artistFragment.getAdapter().getCheckedArtiste()){
+                                musiqueList.addAll(Helper.matchBasicCursorToMusics(Helper.getAllArtistSongs(MainActivity.this,artiste.getIdArtiste())));
+                            }
+                            break;
+                    }
+                    if(musiqueList!=null && !musiqueList.isEmpty()){
+                        if(ACTION_SUPPRIMER.equalsIgnoreCase(action)){
+                            deleteSong(musiqueList);
+                        }else if(ACTION_PARTAGER.equalsIgnoreCase(action)){
+                            Musique[] m = new Musique[musiqueList.size()];
+                            Helper.shareMusics(MainActivity.this,musiqueList.toArray(m));
+                            stopActionMode(null);
+                        }
+                    }else{
+                        Toast.makeText(MainActivity.this,getString(R.string.veuillez_choisir_au_moins_un_element), Toast.LENGTH_SHORT).show();
+                    }
+
+                }
+            });
+
+            linearLayout.addView(validate);
+
+            rootLayout.addView(linearLayout);
+
+
+        }else{
+            rootLayout.removeViewAt(rootLayout.getChildCount()-1);
+            rootLayout.addView(bottomNavigationView);
+            controlLayout.setVisibility(View.VISIBLE);
+            findViewById(R.id.appbarlayout).setVisibility(View.VISIBLE);
+        }
+    }
+
+    private void deleteSong(final List<Musique> musiques) {
+
+        final Dialog dialog = Helper.confirmSongsSuppresion(this, (musiques!=null && musiques.size()>1));
+        dialog.findViewById(R.id.button_confirmation_cancel).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+                stopActionMode(null);
+            }
+        });
+
+        dialog.findViewById(R.id.button_confirmation_validate).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Musique[] m = new Musique[musiques.size()];
+                Helper.deleteMusics(MainActivity.this,musiques.toArray(m));
+                dialog.dismiss();
+                stopActionMode(null);
+                model.refreshData(MainActivity.this);
+            }
+        });
+
+        dialog.show();
+    }
+
+    private void stopActionMode(String action) {
+        isActionMode = false;
+        switch (currentItemPosition){
+            case 1:
+                if(allMusicFragment!=null){
+                    allMusicFragment.getAdapter().setActionMode(isActionMode);
+                }
+                break;
+
+            case 2:
+                if(albumFragment!=null){
+                    albumFragment.getAdapter().setActionMode(isActionMode);
+                }
+                break;
+
+            case 3:
+                if(artistFragment!=null){
+                    artistFragment.getAdapter().setActionMode(isActionMode);
+                }
+        }
+
+        startTransitionForActionMode(action);
+    }
+
+    private void launchSearch() {
+
     }
 
     @Override
@@ -181,11 +371,8 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        if(isFragmentUnder) {
-            userHaveNavigate = true;
-            super.onBackPressed();
-            isFragmentUnder = false;
-            bottomNavigationView.setVisibility(View.VISIBLE);
+        if(isActionMode){
+            stopActionMode(null);
         }else{
             if(userHaveNavigate){
                 Toast.makeText(this, getString(R.string.appuyer_e_nouvea_pour_quitter),Toast.LENGTH_SHORT).show();
@@ -353,7 +540,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void configureView() {
-        viewPager.setAdapter(new ViewPagerAdapter(getSupportFragmentManager()));
+        viewPagerAdapter = new ViewPagerAdapter(getSupportFragmentManager());
+        viewPager.setAdapter(viewPagerAdapter);
         int lastVisitedPage = PreferenceManager.getDefaultSharedPreferences(this).getInt(Helper.PREFERENCES_LAST_VISITED_PAGED_NUMBER,0);
         viewPager.setCurrentItem(lastVisitedPage,false);
         setSelectedFragment(lastVisitedPage);
@@ -500,6 +688,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void setSelectedFragment(int position) {
+        currentItemPosition = position;
         int resId = 0;
         int pos = 0;
         String title = null;
@@ -565,7 +754,9 @@ public class MainActivity extends AppCompatActivity {
         }
 
         if(selectedItem!=-1){
+            currentItemPosition = selectedItem;
             viewPager.setCurrentItem(selectedItem,true);
+            invalidateOptionsMenu();
             return true;
         }
 
@@ -684,16 +875,20 @@ public class MainActivity extends AppCompatActivity {
             switch (position){
 
                 case 0:
-                    return new FavoriFragment();
+                    favorisFragment = new FavoriFragment();
+                    return favorisFragment;
 
                 case 1:
-                    return new AllMusicFragment();
+                    allMusicFragment = new AllMusicFragment();
+                    return allMusicFragment;
 
                 case 2:
-                    return new AlbumFragment();
+                    albumFragment = new AlbumFragment();
+                    return albumFragment;
 
                 case 3:
-                    return new ArtistFragment();
+                    artistFragment = new ArtistFragment();
+                    return artistFragment;
             }
 
             return fragment;

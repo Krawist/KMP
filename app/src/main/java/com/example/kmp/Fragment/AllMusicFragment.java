@@ -15,7 +15,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.example.kmp.Activity.Details;
 import com.example.kmp.Activity.MainActivity;
 import com.example.kmp.Adapter.MusicAdapterWithImage;
 import com.example.kmp.Helper.Helper;
@@ -41,6 +40,10 @@ public class AllMusicFragment extends Fragment {
 
     public AllMusicFragment() {
         // Required empty public constructor
+    }
+
+    public MusicAdapterWithImage getAdapter() {
+        return adapter;
     }
 
     @Override
@@ -123,7 +126,7 @@ public class AllMusicFragment extends Fragment {
         if(getUserVisibleHint()){
             if(item.getItemId()==R.id.action_music_supprimer){
                 final int position = item.getGroupId();
-                final Dialog dialog = Helper.confirmSongsSuppresion(getContext());
+                final Dialog dialog = Helper.confirmSongsSuppresion(getContext(), false);
                 dialog.findViewById(R.id.button_confirmation_cancel).setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {

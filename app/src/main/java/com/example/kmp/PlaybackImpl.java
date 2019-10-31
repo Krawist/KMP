@@ -3,9 +3,12 @@ package com.example.kmp;
 import android.content.Context;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
+import android.media.audiofx.Equalizer;
 import android.net.Uri;
 import android.widget.Toast;
 
+import com.example.kmp.Helper.Helper;
+import com.example.kmp.Modeles.MusicEffect;
 import com.example.kmp.Service.PlayerService;
 
 import java.io.IOException;
@@ -20,12 +23,30 @@ public class PlaybackImpl implements Playback, MediaPlayer.OnErrorListener, Medi
     private PlayerService service;
     private Context context;
     private boolean isPrepared = false;
+    private Equalizer equalizer;
+    private MusicEffect musicEffect;
 
     public PlaybackImpl(PlayerService service, Context context){
         mediaPlayer = new MediaPlayer();
         mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
         this.service = service;
         this.context = context;
+        equalizer = new Equalizer(0,mediaPlayer.getAudioSessionId());
+
+        updateMediaEffect();
+
+    }
+
+    @Override
+    public void updateMediaEffect() {
+        musicEffect = Helper.getMusicEffect(context);
+        updateMediaPlayerEffect();
+    }
+
+    private void updateMediaPlayerEffect() {
+        equalizer.setEnabled(musicEffect.isActif());
+        equalizer.usePreset(musicEffect.getEqualizerEffectIndex());
+
     }
 
     public void setLooping(boolean looping){
@@ -115,6 +136,7 @@ public class PlaybackImpl implements Playback, MediaPlayer.OnErrorListener, Medi
     public boolean release() {
         if(mediaPlayer!=null){
             mediaPlayer.release();
+            equalizer.release();
             isPrepared = false;
         }
         return true;

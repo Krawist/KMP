@@ -67,6 +67,10 @@ public class ArtistFragment extends Fragment {
         artistes = model.getAllArtistes().getValue();
     }
 
+    public ArtistAdapter getAdapter() {
+        return adapter;
+    }
+
     @Override
     public boolean onContextItemSelected(MenuItem item) {
         if(getUserVisibleHint() && isVisible() && isResumed() && !((MainActivity)getContext()).isFragmentUnder){

@@ -13,9 +13,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
-import android.os.PowerManager;
 import android.preference.PreferenceManager;
-import android.provider.MediaStore;
 import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaSessionCompat;
@@ -133,6 +131,7 @@ public class PlayerService extends MediaBrowserServiceCompat implements AudioMan
     private PlayingNotification playingNotification;
     private boolean ongoingCall = false;
     private TelephonyManager telephonyManager;
+    private boolean isLoadingLooping = false;
 
     @Nullable
     @Override
@@ -301,8 +300,9 @@ public class PlayerService extends MediaBrowserServiceCompat implements AudioMan
 
         Collections.shuffle(list);
         newPlayingQueue.addAll(list);
-
+        model.getPositionOfSongToPLay().setValue(0);
         model.getPlayingQueue().setValue(newPlayingQueue);
+
     }
 
     private int getPlayingSongPosition(){
@@ -434,9 +434,17 @@ public class PlayerService extends MediaBrowserServiceCompat implements AudioMan
             if (requestFocus()) {
                 boolean isPlaying = playback.play();
                 if(!isPlaying) {
-                    loadMusic();
-                    play();
+                    if(!isLoadingLooping){
+                        loadMusic();
+                        isLoadingLooping = true;
+                        play();
+                    }else{
+                        Toast.makeText(this,getString(R.string.veuillez_choisir_un_song),Toast.LENGTH_SHORT).show();
+                        isLoadingLooping = false;
+                    }
                 }
+
+                isLoadingLooping = false;
 
                 updateMediaSession();
 
@@ -567,26 +575,14 @@ public class PlayerService extends MediaBrowserServiceCompat implements AudioMan
             }
         }else{
             try {
-                unregisterReceiver(becomingNoisyReceiver);
+                if(becomingNoisyReceiverRegistered){
+                    unregisterReceiver(becomingNoisyReceiver);
+                }
             }catch (IllegalArgumentException e){
 
             }
         }
         becomingNoisyReceiverRegistered = register;
-        regiserListenerForCalls(register);
-    }
-
-    private void regiserListenerForCalls(boolean register) {
-        if(register){
-            getTelelphonyManager().listen(phoneStateListener, PhoneStateListener.LISTEN_CALL_STATE);
-        }
-    }
-
-    private TelephonyManager getTelelphonyManager() {
-        if(telephonyManager==null)
-            telephonyManager =  (TelephonyManager)getSystemService(Context.TELEPHONY_SERVICE);
-
-        return telephonyManager;
     }
 
     private void updatePlayListPreference() {
@@ -797,7 +793,7 @@ public class PlayerService extends MediaBrowserServiceCompat implements AudioMan
     }
 
     private void abandonFocusOnAudioOutput(){
-        audioManager.abandonAudioFocus(PlayerService.this);
+        getAudioManager().abandonAudioFocus(PlayerService.this);
     }
 
     private void releaseResources(){
@@ -921,6 +917,10 @@ public class PlayerService extends MediaBrowserServiceCompat implements AudioMan
         intent.putExtra("scrobbling_source", PACKAGE_NAME);
 
         //sendStickyBroadcast(intent);
+    }
+
+    public void userPreset(short equalizerEffectIndex) {
+        playback.updateMediaEffect();
     }
 
     public class LocalBinder extends Binder {

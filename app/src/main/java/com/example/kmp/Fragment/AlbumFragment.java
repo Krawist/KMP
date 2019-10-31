@@ -2,24 +2,18 @@ package com.example.kmp.Fragment;
 
 
 import android.app.Dialog;
-import android.content.Context;
 import android.os.Bundle;
 
-import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Observer;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
-import android.widget.TextView;
 
-import com.bumptech.glide.Glide;
 import com.example.kmp.Adapter.AlbumAdapter;
 import com.example.kmp.Helper.Helper;
 import com.example.kmp.Activity.MainActivity;
@@ -96,12 +90,16 @@ public class AlbumFragment extends Fragment {
         }
     }
 
+    public AlbumAdapter getAdapter() {
+        return adapter;
+    }
+
     @Override
     public boolean onContextItemSelected(final MenuItem item) {
         if(getUserVisibleHint() && isVisible() && isResumed() && !((MainActivity)getContext()).isFragmentUnder){
             final Album album = albums.get(item.getGroupId());
             if(item.getItemId()==R.id.action_supprimer){
-                final Dialog dialog = Helper.confirmSongsSuppresion(getContext());
+                final Dialog dialog = Helper.confirmSongsSuppresion(getContext(), true);
                 dialog.findViewById(R.id.button_confirmation_validate).setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {

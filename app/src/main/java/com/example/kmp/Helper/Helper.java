@@ -7,11 +7,13 @@ import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.Point;
 import android.media.MediaMetadataRetriever;
 import android.net.Uri;
+import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 import android.text.TextUtils;
 import android.util.Log;
@@ -29,6 +31,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 import androidx.core.graphics.drawable.RoundedBitmapDrawable;
 import androidx.core.graphics.drawable.RoundedBitmapDrawableFactory;
 import androidx.recyclerview.widget.DividerItemDecoration;
@@ -37,16 +40,17 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.target.BitmapImageViewTarget;
-import com.example.kmp.Activity.Details;
 import com.example.kmp.Activity.MainActivity;
 import com.example.kmp.Adapter.MusicAdapterWithImage;
 import com.example.kmp.Modeles.Album;
 import com.example.kmp.Modeles.Artiste;
+import com.example.kmp.Modeles.MusicEffect;
 import com.example.kmp.Modeles.Musique;
 import com.example.kmp.Modeles.Playlist;
 import com.example.kmp.R;
 import com.example.kmp.Service.PlayerService;
 import com.example.kmp.ViewModel.KmpViewModel;
+import com.google.gson.Gson;
 
 import java.io.File;
 import java.text.DecimalFormat;
@@ -65,6 +69,7 @@ public class Helper {
     public static final String PREFERENCES_LOOPING_MODE_KEY = "looping_mode";
     public static final String PREFERENCES_SHUFFLE_MODE_KEY = "shuffle_mode";
     public static final String PREFERENCES_LAST_VISITED_PAGED_NUMBER = "derniere_page_ouverte";
+    public static final String PREFERENCES_MUSIC_EFFECT_KEY = "music_effect_key";
 
     public static final String EXTERNAL_CONTENT_URI_VOLUME_NAME = "external";
 
@@ -430,11 +435,11 @@ public class Helper {
         context.startActivity(Intent.createChooser(shareIntent,context.getString(R.string.partager_via)));
     }
 
-    public static Dialog confirmSongsSuppresion(final Context context){
+    public static Dialog confirmSongsSuppresion(final Context context, boolean isManySong){
 
         final Dialog dialog = new Dialog(context);
         dialog.setContentView(R.layout.dialog_confirmation_layout);
-        ((TextView)dialog.findViewById(R.id.textview_confirmation_text)).setText(R.string.supprimer_un_song);
+        ((TextView)dialog.findViewById(R.id.textview_confirmation_text)).setText(isManySong?context.getString(R.string.supprimer_plusieurs_songs):context.getString(R.string.supprimer_un_song));
         Button cancelButton = dialog.findViewById(R.id.button_confirmation_cancel);
         cancelButton.setText(R.string.annuler);
         dialog.setCanceledOnTouchOutside(false);
@@ -715,7 +720,7 @@ public class Helper {
                 return true;
 
             case R.id.action_music_supprimer:
-                Helper.confirmSongsSuppresion(context);
+                Helper.confirmSongsSuppresion(context, false);
                 return true;
 
             case R.id.action_music_details:
@@ -791,7 +796,7 @@ public class Helper {
             case R.id.action_supprimer:
                 for(int i=0; i<musiqueList.size();i++)
                     musiques[i] = musiqueList.get(i);
-                Helper.confirmSongsSuppresion(context);
+                Helper.confirmSongsSuppresion(context, true);
                 return true;
         }
 
@@ -967,6 +972,26 @@ public class Helper {
 
         return numberOfItemInLine;
 
+    }
+
+    public static MusicEffect getMusicEffect(Context context){
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+        String musicEffectInString = sharedPreferences.getString(PREFERENCES_MUSIC_EFFECT_KEY,null);
+        if(musicEffectInString!=null){
+            MusicEffect musicEffect = new Gson().fromJson(musicEffectInString,MusicEffect.class);
+            return musicEffect;
+        }else{
+            MusicEffect musicEffect = new MusicEffect();
+            saveMusicEffect(context, musicEffect);
+            return musicEffect;
+        }
+    }
+
+    public static void saveMusicEffect(Context context, MusicEffect musicEffect) {
+        PreferenceManager.getDefaultSharedPreferences(context)
+                .edit()
+                .putString(PREFERENCES_MUSIC_EFFECT_KEY,new Gson().toJson(musicEffect))
+                .apply();
     }
 
     public static void startPlaylist(List<Musique> list, Musique musique, int position, boolean isShuffle, KmpViewModel model, Context context){
